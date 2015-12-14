@@ -326,7 +326,7 @@ sub force10SSH {
   my $count = 0;
   my $ssh;
 
-  $ssh = Expect->spawn("ssh -l $username $hostname");
+  $ssh = Expect->spawn("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l $username $hostname");
   $ssh->log_stdout(0);
   $ssh->log_file(sub {$prompt .= shift });
   $ssh->expect($self->{'timeout'},
@@ -428,7 +428,7 @@ sub hpSSH {
   my $count = 0;
   my $ssh;
 
-  $ssh = Expect->spawn("ssh -l $username $hostname");
+  $ssh = Expect->spawn("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l $username $hostname");
   $ssh->log_stdout(0);
   $ssh->expect($self->{'timeout'},
                ['assword:',
@@ -614,7 +614,7 @@ sub ios2SSH {
   my $count = 0;
   my $ssh;
 
-  $ssh = Expect->spawn("ssh -l $username $hostname");
+  $ssh = Expect->spawn("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l $username $hostname");
   $ssh->log_stdout(0);
   $ssh->expect(5,
                ['assword:',
@@ -713,7 +713,7 @@ sub iosxrSSH {
   my $questionMark = 0;
   my $ssh;
 
-  $ssh = Expect->spawn("ssh -l $username $hostname");
+  $ssh = Expect->spawn("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l $username $hostname");
   $ssh->log_stdout(0);
   $ssh->expect($self->{'timeout'},
                ['assword:',
@@ -831,7 +831,7 @@ sub junosSSH {
   my $ssh;
   my $questionMark = 0;
 
-  $ssh = Expect->spawn("ssh -l $username $hostname");
+  $ssh = Expect->spawn("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l $username $hostname");
   $ssh->log_stdout(0);
   $ssh->expect($self->{'timeout'},
                ['assword:',
