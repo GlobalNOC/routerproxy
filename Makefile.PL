@@ -30,7 +30,7 @@ test_jenkins : pure_all
 
 sub MY::postamble { <<'END'; }
 
-rpm:    manifest dist
+rpm:    dist
 	rpmbuild -ta grnoc-routerproxy-$(VERSION).tar.gz
 
 END

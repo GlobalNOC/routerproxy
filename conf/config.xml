@@ -301,7 +301,10 @@
   
   <!-- any stanzas to redact in the output -->
   <redact-stanzas>
-    <stanza>A regex to be redacted</stanza>
+
+    <!-- strip port numbers from Juniper BGP neighbor output -->
+    <stanza>(?&#60;&#61;\+)\d+</stanza>
+
   </redact-stanzas>
 
 </config>

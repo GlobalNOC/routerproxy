@@ -1,6 +1,6 @@
 Summary: GRNOC Router Proxy
 Name: grnoc-routerproxy
-Version: 1.7.7
+Version: 1.8.0
 Release: 1%{?dist}
 License: GRNOC
 Group: Auth

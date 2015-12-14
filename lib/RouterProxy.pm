@@ -32,7 +32,7 @@ use GRNOC::TL1::Device::Ciena::CoreDirector;
 
 my $timeout = 0;
 
-our $VERSION = '1.7.7';
+our $VERSION = '1.8.0';
 sub new {
 
   my $caller = shift;
