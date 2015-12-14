@@ -8,6 +8,8 @@ lib/RouterProxy.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
+META.json			Module JSON meta-data (added by MakeMaker)
+META.yml			Module YAML meta-data (added by MakeMaker)
 README.md
 t/conf/test.conf
 t/data/show_bgp_neighbor.txt
@@ -17,5 +19,3 @@ t/routerProxy.t
 t/TEST
 webroot/index.cgi
 webroot/style.css
-META.yml                                 Module YAML meta-data (added by MakeMaker)
-META.json                                Module JSON meta-data (added by MakeMaker)

@@ -1,7 +1,7 @@
 package RouterProxy;
 
-use Net::SSH::Perl;
-use Net::SSH::Perl::Constants qw( :msg );
+use strict;
+
 use Net::Telnet;
 use Expect;
 
@@ -29,8 +29,6 @@ use GRNOC::TL1::Device::Nortel::OME6500;
 use GRNOC::TL1::Device::Nortel::HDXc;
 use GRNOC::TL1::Device::Cisco::ONS15454;
 use GRNOC::TL1::Device::Ciena::CoreDirector;
-
-use strict;
 
 my $timeout = 0;
 
@@ -196,61 +194,7 @@ sub command {
 
     else {
 
-      my $ssh = Net::SSH::Perl->new($self->{hostname}, debug=>$self->{debug});
-
-      my $msg;
-
-      my $maxLines = $self->{maxlines};
-      my $numLines = 0;
-
-      eval {
-
-        # setup the timeout handler
-        local $SIG{ALRM} = sub {
-
-          alarm(0);
-          $msg .= "\n--- Maximum Timeout Exceeded ---\n";
-          die;
-        };
-
-        $ssh->register_handler(SSH_SMSG_STDOUT_DATA, sub {
-
-                                 my ($channel, $buffer) = @_;
-                                 my $str = $buffer->get_str;
-
-                                 my @bufLines = split(/\n/, $str);
-
-                                 foreach (@bufLines) {
-
-                                   $numLines++;
-
-                                   if ($numLines > $maxLines) {
-                                     die;
-                                   }
-
-                                   $_ =~ s/ /&nbsp;/g;
-                                   $_ =~ s/</&lt;/g;
-                                   $_ =~ s/>/&gt;/g;
-                                   #$_ =~ s/\n/<br>/g;
-                                   $msg .= "$_";
-
-                                   if ($numLines >= $maxLines) {
-
-                                     $msg .= "\n--- Maximum Output Exceeded ---\n";
-                                     die;
-                                   }
-                                 }
-                               });
-
-        $ssh->login($self->{username}, $self->{password});
-
-        # start the timeout timer
-        alarm($self->{'timeout'});
-        $ssh->cmd($command);
-      };
-
-      $msg = $self->sanitize_text($msg);
-      return $msg;
+	return "Unsupported connection type";
     }
   }
 
