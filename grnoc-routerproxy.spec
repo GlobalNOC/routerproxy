@@ -1,6 +1,6 @@
 Summary: GRNOC Router Proxy
 Name: grnoc-routerproxy
-Version: 1.7.6
+Version: 1.7.7
 Release: 1%{?dist}
 License: GRNOC
 Group: Auth
@@ -9,12 +9,12 @@ Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires: httpd
+Requires: openssh-clients
 Requires: perl >= 5.8.8
 Requires: perl(XML::Parser)
 Requires: perl(XML::Simple)
 Requires: perl(CGI::Ajax)
 Requires: perl(Time::ParseDate)
-Requires: perl(Net::SSH::Perl)
 Requires: perl(Net::Telnet)
 Requires: perl(Expect)
 Requires: perl(GRNOC::TL1)
