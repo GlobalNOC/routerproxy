@@ -1,0 +1,40 @@
+Peer: 17.1.144.1+58094 AS 714  Local: 17.1.144.2+179 AS 11164
+  Description: [trcpspeer] Apple - PNI - Equinix Ashburn | TRCPS-S02241
+  Type: External    State: Established    Flags: <Sync>
+  Last State: OpenConfirm   Last Event: RecvKeepAlive
+  Last Error: None
+  Export: [ SANITY-PEER EBGP-PEER-AS714-OUT ]
+  Import: [ SANITY-PEER EBGP_PEER_EQXASBN_IN ]
+  Options: <Preference HoldTime RemovePrivateAS LogUpDown AddressFamily PeerAS
+Multipath Refresh>
+  Address families configured: inet-unicast
+  Holdtime: 90 Preference: 170
+  Number of flaps: 0
+  Peer ID: 17.0.76.1       Local ID: 64.57.29.131      Active Holdtime: 90
+  Keepalive Interval: 30         Group index: 120  Peer index: 0   
+  BFD: disabled, down
+  Local Interface: ae5.0                            
+  NLRI for restart configured on peer: inet-unicast
+  NLRI advertised by peer: inet-unicast
+  NLRI for this session: inet-unicast
+  Peer supports Refresh capability (2)
+  Stale routes from peer are kept for: 300
+  Peer does not support Restarter functionality
+  NLRI that restart is negotiated for: inet-unicast
+  NLRI of received end-of-rib markers: inet-unicast
+  NLRI of all end-of-rib markers sent: inet-unicast
+  Peer supports 4 byte AS extension (peer-as 714)
+  Peer does not support Addpath
+  Table trcps.inet.0 Bit: 80029
+    RIB State: BGP restart is complete
+    RIB State: VPN restart is complete
+    Send state: in sync
+    Active prefixes:              121
+    Received prefixes:            121
+    Accepted prefixes:            121
+    Suppressed due to damping:    0
+    Advertised prefixes:          4528
+  Last traffic (seconds): Received 11   Sent 13   Checked 11  
+  Input messages:  Total 110768	Updates 468	Refreshes 0	Octets 2119527
+  Output messages: Total 144521	Updates 33453	Refreshes 0	Octets 5732186
+  Output Queue[7]: 0

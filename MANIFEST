@@ -1,0 +1,21 @@
+conf/apache/routerproxy.conf
+conf/config.xml
+conf/routerproxy_mappings.xml
+grnoc-routerproxy.spec
+lib/Commands.pm
+lib/Logger.pm
+lib/RouterProxy.pm
+LICENSE
+Makefile.PL
+MANIFEST			This list of files
+README.md
+t/conf/test.conf
+t/data/show_bgp_neighbor.txt
+t/data/show_bgp_neighbor_redacted.txt
+t/init.t
+t/routerProxy.t
+t/TEST
+webroot/index.cgi
+webroot/style.css
+META.yml                                 Module YAML meta-data (added by MakeMaker)
+META.json                                Module JSON meta-data (added by MakeMaker)
