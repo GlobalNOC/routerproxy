@@ -8,18 +8,18 @@ URL: http://globalnoc.iu.edu
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
-Requires: httpd >= 2.2.3
+Requires: httpd
 Requires: perl >= 5.8.8
-Requires: perl-XML-Parser >= 2.34
-Requires: perl-XML-Simple >= 2.14
-Requires: perl-CGI-Ajax >= 0.707
-Requires: perl-Time-modules >= 2003.1126re
-Requires: perl-Net-SSH-Perl >= 1.34
-Requires: perl-Net-Telnet >= 3.03
-Requires: perl-Expect >= 1.21
-Requires: perl-GRNOC-TL1 >= 1.2.10
-Requires: perl-GRNOC-Config
-Requires: perl-Class-Accessor
+Requires: perl(XML::Parser)
+Requires: perl(XML::Simple)
+Requires: perl(CGI::Ajax)
+Requires: perl(Time::ParseDate)
+Requires: perl(Net::SSH::Perl)
+Requires: perl(Net::Telnet)
+Requires: perl(Expect)
+Requires: perl(GRNOC::TL1)
+Requires: perl(GRNOC::Config)
+Requires: perl(Class::Accessor)
 BuildRequires: tar
 AutoReqProv: no
 
@@ -68,23 +68,3 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/httpd/conf.d/grnoc/routerproxy.conf
 /gnoc/routerproxy/README.md
 %attr(755,apache,apache) %dir /gnoc/routerproxy/.ssh/
-
-%changelog
-* Fri Dec 14 2012 Pairoj Rattadilok <prattadi@grnoc.iu.edu> - 1.7.5-1
-- ISSUE=4368 Added support for configurable command help text
-
-* Fri Oct 5 2012 Pairoj Rattadilok <prattadi@grnoc.iu.edu> - 1.7.4-1
-- ISSUE=2229 Improve RPM with mappable configuration file, change configuration file path, update README.
-- ISSUE=4425 Added configuration variable to enable the display of menu commands.
-
-* Mon May 2  2011 Dan Doyle <daldoyle@grnoc.iu.edu> - 1.7.1-1
-- Added ability to have <exclude> elements at the same level as <command>
-
-* Wed Nov 24 2010 Mitch McCracken <mrmccrac@grnoc.iu.edu> - 1.7.0-3
-- Include DirectoryIndex options in example Apache config
-
-* Wed Nov 24 2010 Mitch McCracken <mrmccrac@grnoc.iu.edu> - 1.7.0-2
-- Include AddHandler options in example Apache config
-
-* Wed Nov 24 2010 Mitch McCracken <mrmccrac@grnoc.iu.edu> - 1.7.0-1
-- First RPM-based release
