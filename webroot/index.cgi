@@ -1430,6 +1430,12 @@ sub getResponse {
     return ("Please wait $wait seconds before sending another command.", "");
   }
 
+  # make sure the device exists in the config
+  if ( !defined( $devices->{$device} ) ) {
+
+      return ("Requested device is not configured.  Please reload the page.", "" );
+  }
+
   Logger::addEntry($logfile, $remoteIP, $device, $cmd . " " . $args);
 
   if (!validCommand($cmd, $args, $device)) {
