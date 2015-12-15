@@ -871,6 +871,12 @@ sub getCienaMenuResponse {
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
+  # make sure the device exists in the config
+  if ( !defined( $devices->{$device} ) ) {
+
+      return ("Requested device is not configured.  Please reload the page.", "" );
+  }
+
   # use my TL1 module to issue the command
   my $name = $devices->{$device}->{'name'}->[0];
   my $hostname = $devices->{$device}->{'address'}->[0];
@@ -931,6 +937,12 @@ sub getOnsMenuResponse {
     return ("Please wait $wait seconds before sending another command.", "");
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+
+  # make sure the device exists in the config
+  if ( !defined( $devices->{$device} ) ) {
+
+      return ("Requested device is not configured.  Please reload the page.", "" );
+  }
 
   # use my TL1 module to issue the command
   my $name = $devices->{$device}->{'name'}->[0];
@@ -1007,6 +1019,11 @@ sub getOmeMenuResponse {
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
+  # make sure the device exists in the config
+  if ( !defined( $devices->{$device} ) ) {
+
+      return ("Requested device is not configured.  Please reload the page.", "" );
+  }
 
   # use my TL1 module to issue the command
   my $name = $devices->{$device}->{'name'}->[0];
@@ -1077,6 +1094,12 @@ sub getHdxcMenuResponse {
     return ("Please wait $wait seconds before sending another command.", "");
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+
+  # make sure the device exists in the config
+  if ( !defined( $devices->{$device} ) ) {
+
+      return ("Requested device is not configured.  Please reload the page.", "" );
+  }
 
   # use my TL1 module to issue the command
   my $name = $devices->{$device}->{'name'}->[0];
@@ -1167,6 +1190,12 @@ sub getIosMenuResponse {
     return ("Please wait $wait seconds before sending another command.", "");
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+
+  # make sure the device exists in the config
+  if ( !defined( $devices->{$device} ) ) {
+
+      return ("Requested device is not configured.  Please reload the page.", "" );
+  }
 
   # use IOS XR XML to issue the command
   my $name = $devices->{$device}->{'name'}->[0];
@@ -1282,6 +1311,12 @@ sub getMenuResponse {
     return ("Please wait $wait seconds before sending another command.", "");
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+
+  # make sure the device exists in the config
+  if ( !defined( $devices->{$device} ) ) {
+
+      return ("Requested device is not configured.  Please reload the page.", "" );
+  }
 
   # use JUNOSCRIPT to issue the command
   my $name = $devices->{$device}->{'name'}->[0];
