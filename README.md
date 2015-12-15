@@ -6,8 +6,7 @@
 2. Dependencies
 3. TODO
 4. Supported Devices
-5. Changes
-6. Banana
+5. Banana
 
 ## About
 Router Proxy is a web-based perl-driven management tool specifically designed for Cisco,
@@ -39,7 +38,7 @@ cascading style sheet to better suit your needs.
 Router Proxy needs an Apache installation with CGI/Perl support.  Additionally the following
 Perl modules need to be installed as well (generally easily done with cpan).
 
-* JUNOS::Device (see http://www.juniper.net/support/xml/junoscript/index.html)
+* JUNOS::Device / junoscript (see http://www.juniper.net/support/xml/junoscript/index.html)
 (NOTE: This is now only required for the menu based commands.. if you
 don't have it installed, RouterProxy will still work)
 * CGI
@@ -49,13 +48,7 @@ don't have it installed, RouterProxy will still work)
 * Expect
 * Time::ParseDate
 * Date::Calc
-
-**NOTE** JUNOS::Device depends upon several modules itself--which can sometimes be fun to try
-and install all of them.  In particular, if you have trouble installing Math::GMP make
-sure your have libgmp installed, available at: http://www.swox.com/gmp/.
-
-You will also need to manually install the GRNOC::TL1 module, placing it in a proper lib
-directory on your machine.
+* GRNOC::TL1
 
 These modules have several dependencies of their own, so make sure they are installed as well.
 
@@ -81,78 +74,7 @@ specified in the config.xml file:
 * Ciena Core Director	    ciena		
 * HP ProCurve		    hp			Any HP Switch	
 * Force10		    force10	
-
-
-## Changes
-[Version 1.7.6]
-* ISSUE=7928 fix issue where # or > characters in the login banner for JunOS would confuse logins
-* ISSUE=7639 fix issue when sending commands to junipers with the ? character where it would timeout due to not failing to match the command prompt
-* ISSUE=6696 fix issue with location data displaying hashes
-* ISSUE=5472 rpm now installs .ssh directory so there will be no permissions conflict
-
-[Version 1.7.5]
-* ISSUE=4368 Added support for configurable command help text
-
-[Version 1.7.4]
-* ISSUE=2229 Improve RPM with mappable configuration file, change configuration file path, update README.
-* ISSUE=4425 PROJ=102 Add a config variable to enable/disable the appearance of menu commands
-
-[Version 1.7.3]
-* ISSUE=2919 PROJ=102 added support for brocade devices
-
-[Version 1.7.2]
-* ISSUE=2100 PROJ=102 implement collapsable menu titles
-
-[Version 1.7.1]
-* ISSUE=2206 PROJ=102 Added ability to have <exclude> elements at the same level as <command>
-
-[Version 1.7.0]
-* Adding build support for RPM
-
-[Version 1.6.4]
-* ISSUE=1171 PROJ=102 use FileHandle before use XML::Simple to fix error in perl 5.10 (thanks Stan Barber @ SETG)
-
-[Version 1.6.3]
-* ISSUE=670 PROJ=102 fixed output of JUNOS SNMP Statistics command
-* ISSUE=734 PROJ=102 use routerproxy/ dir as home dir to create .ssh/ directory
-* ISSUE=733 PROJ=102 fixing issue where perl would die if Cisco::IOS_XR wasn't installed--now it doesn't have to be
-
-[Version 1.6.2]
-* Cisco NX-OS support
-* added <layer> option to devices to group them rather than using <type>
-
-[Version 1.6.1]
-* security fix to perform extra command validation to prevent circumventing allowed commands
-
-[Version 1.6]
-* new GRNOC::TL1 module must be separately installed
-* minor bug fixes and uses the new GRNOC::TL1 code
-
-[Version 1.53]
-* Added some IOS XR (CRS) menu-based commands (requires Cisco IOS XR XML Perl library)
-
-[Version 1.52]
-* Junoscript no longer necessary (unless you want to use the menu-based commands with tabular output)
-* Fixed more alignment/width visualization issues
-* Fixed a problem parsing Junoscript XML from some Juniper devices
-* Issued command is now echoed in the command output
-* Fixed a problem with Juniper & Force10 output not being fully retrieved for some commands
-* Error markers (^) now properly align where the syntax error was
-
-[Version 1.51]
-* IOS Switch 2xxx (ios2) Telnet Support Added
-* Router name included in log file
-* IE7 CSS drop down menu bug fix
-* Tabular alignment improvement
-* Added RouterProxy.pm engine junoscript output support
-* Fixed Juniper SSH commands that sometimes wouldn't work
-* Made the <timeout> option work properly for timing out SSH commands
-
-[Version 1.5]
-* RouterProxy has been completely rewritten from earlier versions
-* Added Force10, TL1, Junoscript, HP support
-* Javascript + AJAX Technology
-* New Menu-based Commands with tabular output
+* Brocade       brocade
 
 ## Banana
 🍌
