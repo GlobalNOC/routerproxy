@@ -1,5 +1,10 @@
 ## Changes
 
+### Version 1.8.0 - Dec 15 2015
+* ISSUE=7386 avoid frontend getting out of sync with configured devices and submitting command to wrong device
+* ISSUE=11786 disable strict host key checking / user known hosts file
+* ISSUE=12546 remove Net::SSH::Perl support
+
 ### Version 1.7.6 - Mar 28 2014
 * ISSUE=7928 fix issue where # or > characters in the login banner for JunOS would confuse logins
 * ISSUE=7639 fix issue when sending commands to junipers with the ? character where it would timeout due to not failing to match the command prompt
