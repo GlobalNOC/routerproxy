@@ -88,10 +88,13 @@ unless (defined($config_path) && -e $config_path) {
 }
 
 my $xml = XMLin($config_path, forcearray => 1);
+
 my $devices = getDevices($xml);
 my @routers = parseRouters();
 my @switches = parseSwitches();
 my @opticals = parseOpticals();
+
+my @all_devices = ( @routers, @switches, @opticals );
 
 my $logfile = $xml->{'log-file'}->[0];
 my $maxlines = $xml->{'max-lines'}->[0];
@@ -120,8 +123,6 @@ $omeMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li>
 $onsMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=onsMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=onsMenuCommand('alarms')>Alarms</a></li><li><a  onclick=onsMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
 
 $cienaMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=cienaMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=cienaMenuCommand('alarms')>Alarms</a></li><li><a onclick=cienaMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
-
-
 
 print $ajax->build_html($cgi, \&makeHTML);
 
@@ -227,7 +228,6 @@ sub FunctionChooser {
         $function = "addBrocade();";
       }
      
-#warn ("$type|$enable_menu_commands|$function\n");
       return $function;
 }
 
@@ -635,31 +635,24 @@ function toggle(id) {
 
     my $devicesHTML = "";
     my $i = 0;
-    my $checked = "";
-    foreach my $device (@routers) {
 
-      my $deviceNum = $device->{'deviceNum'}->[0];
+    foreach my $device (@routers) {
 
       if ($i == 0) {
         $devicesHTML .= "<tr class=\"primary\">";
       }
-      if ($deviceNum == 0) {
-        $checked = "CHECKED";
-      }
-      else {
-        $checked = "";
-      }
+
       my $name = $device->{'name'}->[0];
+      my $address = $device->{'address'}->[0];
       my $city = $device->{'city'}->[0];
       my $state = $device->{'state'}->[0];
       my $type = $device->{'type'}->[0];
 
       my $location_data = _parseLocationData( city => $city, state => $state);
-      #setMenuCommands($device->{'enable-menu-commands'}->[0]);
 
       my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
 
-      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$deviceNum\" $checked onClick=\"$function\" />$name $location_data</td>";
+      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
       if ($i == 2) {
         $devicesHTML .= "</tr>";
         $i = -1;
@@ -690,31 +683,24 @@ function toggle(id) {
 
     my $devicesHTML = "";
     my $i = 0;
-    my $checked = "";
-    foreach my $device (@switches) {
 
-      my $deviceNum = $device->{'deviceNum'}->[0];
+    foreach my $device (@switches) {
 
       if ($i == 0) {
         $devicesHTML .= "<tr class=\"primary\">";
       }
-      if ($deviceNum == 0) {
-        $checked = "CHECKED";
-      }
-      else {
-        $checked = "";
-      }
+
       my $name = $device->{'name'}->[0];
+      my $address = $device->{'address'}->[0];
       my $city = $device->{'city'}->[0];
       my $state = $device->{'state'}->[0];
       my $type = $device->{'type'}->[0];
       
       my $location_data = _parseLocationData( city => $city, state => $state);
-      #setMenuCommands($device->{'enable-menu-commands'}->[0]);
 
       my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
 
-      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$deviceNum\" $checked onClick=\"$function\" />$name $location_data</td>";
+      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
       if ($i == 2) {
         $devicesHTML .= "</tr>";
         $i = -1;
@@ -745,21 +731,15 @@ function toggle(id) {
 
     my $devicesHTML = "";
     my $i = 0;
-    my $checked = "";
-    foreach my $device (@opticals) {
 
-      my $deviceNum = $device->{'deviceNum'}->[0];
+    foreach my $device (@opticals) {
 
       if ($i == 0) {
         $devicesHTML .= "<tr class=\"primary\">";
       }
-      if ($deviceNum == 0) {
-        $checked = "CHECKED";
-      }
-      else {
-        $checked = "";
-      }
+
       my $name = $device->{'name'}->[0];
+      my $address = $device->{'address'}->[0];
       my $city = $device->{'city'}->[0];
       my $state = $device->{'state'}->[0];
       my $type = $device->{'type'}->[0];
@@ -767,7 +747,7 @@ function toggle(id) {
       my $location_data = _parseLocationData( city => $city, state => $state);
       my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
 
-      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$deviceNum\" $checked onClick=\"$function\" />$name $location_data</td>";
+      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
       if ($i == 2) {
         $devicesHTML .= "</tr>";
         $i = -1;
@@ -790,12 +770,9 @@ function toggle(id) {
   $html .= "
   <div class=\"menu-commands\" id=\"menu-commands\">";
 
-  #setMenuCommands(@$devices->[0]->{'enable-menu-commands'}->[0]);
-
-  my $type1 = @$devices->[0]->{'type'}->[0];
-  my $menu1 = @$devices->[0]->{'enable-menu-commands'}->[0];
+  my $type1 = $all_devices[0]->{'type'}->[0];
+  my $menu1 = $all_devices[0]->{'enable-menu-commands'}->[0];
   $html .= getMenuCommands($type1, $menu1);
-
 
   $html .= "</div>
 
@@ -809,42 +786,42 @@ function toggle(id) {
 
   # grab all the commands
   my $type = "";
-  if ($devices->[0]->{'type'}->[0] eq "ios") {
+  if ($all_devices[0]->{'type'}->[0] eq "ios") {
     $type = "ios-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "ios6509") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "ios6509") {
     $type = "ios6509-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "ios2") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "ios2") {
     $type = "ios2-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "junos") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "junos") {
     $type = "junos-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "iosxr") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "iosxr") {
     $type = "iosxr-commands";
   }
-  elsif ($devices->[0]->{'type'}-[0] eq "nx-os") {
+  elsif ($all_devices[0]->{'type'}-[0] eq "nx-os") {
     $type = "nx-os-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "hdxc") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "hdxc") {
     $type = "hdxc-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "ons15454") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "ons15454") {
     $type = "ons15454-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "ome") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "ome") {
     $type = "ome-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "ciena") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "ciena") {
     $type = "ciena-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "force10") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "force10") {
     $type = "force10-commands";
   }
-  elsif ($devices->[0]->{'type'}->[0] eq "hp") {
+  elsif ($all_devices[0]->{'type'}->[0] eq "hp") {
     $type = "hp-commands";
-}elsif ($devices->[0]->{'type'}->[0] eq "brocade"){
+}elsif ($all_devices[0]->{'type'}->[0] eq "brocade"){
     $type = "brocade-commands";
 }
   my $commands = $xml->{$type}->[0]->{'command'};
@@ -892,16 +869,16 @@ sub getCienaMenuResponse {
     my $wait = $spamSeconds - $diff;
     return ("Please wait $wait seconds before sending another command.", "");
   }
-  Logger::addEntry($logfile, $remoteIP, $devices->[$device]->{'name'}->[0], $cmd);
+  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # use my TL1 module to issue the command
-  my $name = $devices->[$device]->{'name'}->[0];
-  my $hostname = $devices->[$device]->{'address'}->[0];
-  my $method = $devices->[$device]->{'method'}->[0];
-  my $username = $devices->[$device]->{'username'}->[0];
-  my $password = $devices->[$device]->{'password'}->[0];
-  my $type = $devices->[$device]->{'type'}->[0];
-  my $port = $devices->[$device]->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'}->[0];
+  my $hostname = $devices->{$device}->{'address'}->[0];
+  my $method = $devices->{$device}->{'method'}->[0];
+  my $username = $devices->{$device}->{'username'}->[0];
+  my $password = $devices->{$device}->{'password'}->[0];
+  my $type = $devices->{$device}->{'type'}->[0];
+  my $port = $devices->{$device}->{'port'}->[0];
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -953,16 +930,16 @@ sub getOnsMenuResponse {
     my $wait = $spamSeconds - $diff;
     return ("Please wait $wait seconds before sending another command.", "");
   }
-  Logger::addEntry($logfile, $remoteIP, $devices->[$device]->{'name'}->[0], $cmd);
+  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # use my TL1 module to issue the command
-  my $name = $devices->[$device]->{'name'}->[0];
-  my $hostname = $devices->[$device]->{'address'}->[0];
-  my $method = $devices->[$device]->{'method'}->[0];
-  my $username = $devices->[$device]->{'username'}->[0];
-  my $password = $devices->[$device]->{'password'}->[0];
-  my $type = $devices->[$device]->{'type'}->[0];
-  my $port = $devices->[$device]->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'}->[0];
+  my $hostname = $devices->{$device}->{'address'}->[0];
+  my $method = $devices->{$device}->{'method'}->[0];
+  my $username = $devices->{$device}->{'username'}->[0];
+  my $password = $devices->{$device}->{'password'}->[0];
+  my $type = $devices->{$device}->{'type'}->[0];
+  my $port = $devices->{$device}->{'port'}->[0];
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -1028,17 +1005,17 @@ sub getOmeMenuResponse {
     my $wait = $spamSeconds - $diff;
     return ("Please wait $wait seconds before sending another command.", "");
   }
-  Logger::addEntry($logfile, $remoteIP, $devices->[$device]->{'name'}->[0], $cmd);
+  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
 
   # use my TL1 module to issue the command
-  my $name = $devices->[$device]->{'name'}->[0];
-  my $hostname = $devices->[$device]->{'address'}->[0];
-  my $method = $devices->[$device]->{'method'}->[0];
-  my $username = $devices->[$device]->{'username'}->[0];
-  my $password = $devices->[$device]->{'password'}->[0];
-  my $type = $devices->[$device]->{'type'}->[0];
-  my $port = $devices->[$device]->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'}->[0];
+  my $hostname = $devices->{$device}->{'address'}->[0];
+  my $method = $devices->{$device}->{'method'}->[0];
+  my $username = $devices->{$device}->{'username'}->[0];
+  my $password = $devices->{$device}->{'password'}->[0];
+  my $type = $devices->{$device}->{'type'}->[0];
+  my $port = $devices->{$device}->{'port'}->[0];
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -1099,16 +1076,16 @@ sub getHdxcMenuResponse {
     my $wait = $spamSeconds - $diff;
     return ("Please wait $wait seconds before sending another command.", "");
   }
-  Logger::addEntry($logfile, $remoteIP, $devices->[$device]->{'name'}->[0], $cmd);
+  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # use my TL1 module to issue the command
-  my $name = $devices->[$device]->{'name'}->[0];
-  my $hostname = $devices->[$device]->{'address'}->[0];
-  my $method = $devices->[$device]->{'method'}->[0];
-  my $username = $devices->[$device]->{'username'}->[0];
-  my $password = $devices->[$device]->{'password'}->[0];
-  my $type = $devices->[$device]->{'type'}->[0];
-  my $port = $devices->[$device]->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'}->[0];
+  my $hostname = $devices->{$device}->{'address'}->[0];
+  my $method = $devices->{$device}->{'method'}->[0];
+  my $username = $devices->{$device}->{'username'}->[0];
+  my $password = $devices->{$device}->{'password'}->[0];
+  my $type = $devices->{$device}->{'type'}->[0];
+  my $port = $devices->{$device}->{'port'}->[0];
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -1189,16 +1166,17 @@ sub getIosMenuResponse {
     my $wait = $spamSeconds - $diff;
     return ("Please wait $wait seconds before sending another command.", "");
   }
-  Logger::addEntry($logfile, $remoteIP, $devices->[$device]->{'name'}->[0], $cmd);
+  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # use IOS XR XML to issue the command
-  my $name = $devices->[$device]->{'name'}->[0];
+  my $name = $devices->{$device}->{'name'}->[0];
+  my $address = $devices->{$device}->{'address'}->[0];
 
   my $cisco = Cisco::IOS_XR->new(
-                                 host => $devices->[$device]->{'address'}->[0],
-                                 transport => $devices->[$device]->{'method'}->[0],
-                                 username => $devices->[$device]->{'username'}->[0],
-                                 password => $devices->[$device]->{'password'}->[0],
+                                 host => $address,
+                                 transport => $devices->{$device}->{'method'}->[0],
+                                 username => $devices->{$device}->{'username'}->[0],
+                                 password => $devices->{$device}->{'password'}->[0],
                                  connection_timeout => $timeout);
 
   if ($cmd eq "bgp") {
@@ -1303,15 +1281,15 @@ sub getMenuResponse {
     my $wait = $spamSeconds - $diff;
     return ("Please wait $wait seconds before sending another command.", "");
   }
-  Logger::addEntry($logfile, $remoteIP, $devices->[$device]->{'name'}->[0], $cmd);
+  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # use JUNOSCRIPT to issue the command
-  my $name = $devices->[$device]->{'name'}->[0];
-  my $hostname = $devices->[$device]->{'address'}->[0];
-  my $method = $devices->[$device]->{'method'}->[0];
-  my $username = $devices->[$device]->{'username'}->[0];
-  my $password = $devices->[$device]->{'password'}->[0];
-  my $type = $devices->[$device]->{'type'}->[0];
+  my $name = $devices->{$device}->{'name'}->[0];
+  my $hostname = $devices->{$device}->{'address'}->[0];
+  my $method = $devices->{$device}->{'method'}->[0];
+  my $username = $devices->{$device}->{'username'}->[0];
+  my $password = $devices->{$device}->{'password'}->[0];
+  my $type = $devices->{$device}->{'type'}->[0];
 
   $username = encode("utf8", $username);
   $password = encode("utf8", $password);
@@ -1452,7 +1430,7 @@ sub getResponse {
     return ("Please wait $wait seconds before sending another command.", "");
   }
 
-  Logger::addEntry($logfile, $remoteIP, $devices->[$device]->{'name'}->[0], $cmd . " " . $args);
+  Logger::addEntry($logfile, $remoteIP, $device, $cmd . " " . $args);
 
   if (!validCommand($cmd, $args, $device)) {
 
@@ -1463,25 +1441,18 @@ sub getResponse {
     $cmd = $cmd . " " . $args;
   }
 
-  my $name = $devices->[$device]->{'name'}->[0];
-  my $hostname = $devices->[$device]->{'address'}->[0];
-  my $method = $devices->[$device]->{'method'}->[0];
-  my $username = $devices->[$device]->{'username'}->[0];
-  my $password = $devices->[$device]->{'password'}->[0];
-  my $type = $devices->[$device]->{'type'}->[0];
-  my $port = $devices->[$device]->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'}->[0];
+  my $hostname = $devices->{$device}->{'address'}->[0];
+  my $method = $devices->{$device}->{'method'}->[0];
+  my $username = $devices->{$device}->{'username'}->[0];
+  my $password = $devices->{$device}->{'password'}->[0];
+  my $type = $devices->{$device}->{'type'}->[0];
+  my $port = $devices->{$device}->{'port'}->[0];
 
   # fix encoding
   Encode::from_to($username, 'utf8', 'iso-8859-1');
   Encode::from_to($password, 'utf8', 'iso-8859-1');
 
-  #    my $result = "
-  #<table>
-  #    <tr class=\"menu-title\"><td>Response From $name</td></tr>
-  #    <tr class=\"primary\">
-  #      <td>
-  #        <code>
-  #";
   my $result = "
 <table class=\"no-border\">
 <tr class=\"menu-title\"><td>Response From $name</td></tr>
@@ -1520,74 +1491,82 @@ sub getResponse {
 sub getDevices {
 
   my $xml = shift;
-  my $routers = $xml->{'device'};
-  return $routers;
+
+  my $results = {};
+
+  my $devices = $xml->{'device'};
+
+  foreach my $device ( @$devices ) {
+
+      my $address = $device->{'address'}[0];
+
+      $results->{$address} = $device;
+  }
+
+  return $results;
 }
 
 sub parseRouters {
 
-  my @result;
-  my $i = 0;
-  my $deviceNum = 0;
-
-  foreach my $device (@$devices) {
-
-    my $layer = $device->{'layer'}->[0];
-
-    if ($layer == 3) {
-
-      $device->{'deviceNum'}->[0] = $deviceNum;
-      $result[$i++] = $device;
+    my @result;
+    my $i = 0;
+    
+    my @hostnames = keys( %$devices );
+    
+    foreach my $hostname ( @hostnames ) {
+	
+	my $device = $devices->{$hostname};
+	my $layer = $device->{'layer'}->[0];
+	
+	if ($layer == 3) {
+	    
+	    $result[$i++] = $device;
+	}
     }
-
-    $deviceNum++;
-  }
-
-  return @result;
+    
+    return @result;
 }
 
 sub parseSwitches {
 
-  my @result;
-  my $i = 0;
-  my $deviceNum = 0;
+    my @result;
+    my $i = 0;
 
-  foreach my $device (@$devices) {
+    my @hostnames = keys( %$devices );
 
-    my $layer = $device->{'layer'}->[0];
+    foreach my $hostname ( @hostnames ) {
 
-    if ($layer == 2) {
+        my $device = $devices->{$hostname};
+        my $layer = $device->{'layer'}->[0];
 
-      $device->{'deviceNum'}->[0] = $deviceNum;
-      $result[$i++] = $device;
+        if ($layer == 2) {
+
+            $result[$i++] = $device;
+	}
     }
 
-    $deviceNum++;
-  }
-
-  return @result;
+    return @result;
 }
 
 sub parseOpticals {
 
-  my @result;
-  my $i = 0;
-  my $deviceNum = 0;
+    my @result;
+    my $i = 0;
 
-  foreach my $device (@$devices) {
+    my @hostnames = keys( %$devices );
 
-    my $layer = $device->{'layer'}->[0];
+    foreach my $hostname ( @hostnames ) {
 
-    if ($layer == 1) {
+        my $device = $devices->{$hostname};
+        my $layer = $device->{'layer'}->[0];
 
-      $device->{'deviceNum'}->[0] = $deviceNum;
-      $result[$i++] = $device;
+        if ($layer == 1) {
+
+            $result[$i++] = $device;
+	}
     }
 
-    $deviceNum++;
-  }
-
-  return @result;
+    return @result;
 }
 
 sub validCommand {
@@ -1619,7 +1598,7 @@ sub validCommand {
     $command = $command . " " . $args;
   }
 
-  my $type = $devices->[$device]->{'type'}->[0];
+  my $type = $devices->{$device}->{'type'}->[0];
   if ($type eq "junos") {
 
     $os = "junos-commands";
