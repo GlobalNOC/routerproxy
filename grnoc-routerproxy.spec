@@ -47,6 +47,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__install} webroot/index.cgi %{buildroot}/gnoc/routerproxy/webroot/
 %{__install} webroot/style.css %{buildroot}/gnoc/routerproxy/webroot/
 %{__install} README.md %{buildroot}/gnoc/routerproxy/
+%{__install} Changes.md %{buildroot}/gnoc/routerproxy/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -67,4 +68,5 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,-)
 %config(noreplace) /etc/httpd/conf.d/grnoc/routerproxy.conf
 /gnoc/routerproxy/README.md
+/gnoc/routerproxy/Changes.md
 %attr(755,apache,apache) %dir /gnoc/routerproxy/.ssh/
