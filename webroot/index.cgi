@@ -1524,7 +1524,7 @@ sub parseRouters {
 	}
     }
     
-    return @result;
+    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
 }
 
 sub parseSwitches {
@@ -1545,7 +1545,7 @@ sub parseSwitches {
 	}
     }
 
-    return @result;
+    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
 }
 
 sub parseOpticals {
@@ -1566,7 +1566,7 @@ sub parseOpticals {
 	}
     }
 
-    return @result;
+    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
 }
 
 sub validCommand {
