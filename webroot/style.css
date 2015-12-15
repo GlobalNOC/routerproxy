@@ -199,6 +199,7 @@ li a {
 li a:hover {
  
     text-decoration: underline;
+    cursor: pointer;
 }
 
 li ul {
@@ -213,4 +214,5 @@ li ul {
 li:hover ul, li.over ul {
     
     display: block;
+    cursor: pointer;
 }
