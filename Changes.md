@@ -1,6 +1,7 @@
 ## Changes
 
 ### Version 1.8.0 - Dec 15 2015
+* ISSUE=12307 Added ability to specify regular expressions to be replaced with "[REDACTED]", which allows sanitization of sensitive information
 * ISSUE=7386 avoid frontend getting out of sync with configured devices and submitting command to wrong device
 * ISSUE=11786 disable strict host key checking / user known hosts file
 * ISSUE=12546 remove Net::SSH::Perl support
