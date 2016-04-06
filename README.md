@@ -56,7 +56,7 @@ These modules have several dependencies of their own, so make sure they are inst
 * IOS Menu Commands?
 * Force10 Menu Commands?
 * HP Menu Commands?
-* Telnet support for IOS XR, Force10, HP (currently does not work)
+* Telnet support for IOS XR, Force10, HP (currently does not work).
 
 ## Supported Devices
 The following list of devices is supported by Router Proxy with their corresponding 'type' as
