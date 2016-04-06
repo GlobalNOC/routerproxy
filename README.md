@@ -40,7 +40,7 @@ Perl modules need to be installed as well (generally easily done with cpan).
 
 * JUNOS::Device / junoscript (see http://www.juniper.net/support/xml/junoscript/index.html)
 (NOTE: This is now only required for the menu based commands.. if you
-don't have it installed, RouterProxy will still work)
+don't have it installed, RouterProxy will still work).
 * CGI
 * CGI::Ajax
 * XML::Simple
