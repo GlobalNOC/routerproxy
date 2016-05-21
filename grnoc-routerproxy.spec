@@ -44,6 +44,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__install} lib/Commands.pm %{buildroot}/gnoc/routerproxy/lib/
 %{__install} lib/Logger.pm %{buildroot}/gnoc/routerproxy/lib/
 %{__install} lib/RouterProxy.pm %{buildroot}/gnoc/routerproxy/lib/
+%{__install} lib/RouterProxyConfig.pm %{buildroot}/gnoc/routerproxy/lib/
 %{__install} webroot/index.cgi %{buildroot}/gnoc/routerproxy/webroot/
 %{__install} webroot/style.css %{buildroot}/gnoc/routerproxy/webroot/
 %{__install} README.md %{buildroot}/gnoc/routerproxy/
@@ -58,6 +59,7 @@ rm -rf $RPM_BUILD_ROOT
 /gnoc/routerproxy/lib/Commands.pm
 /gnoc/routerproxy/lib/Logger.pm
 /gnoc/routerproxy/lib/RouterProxy.pm
+/gnoc/routerproxy/lib/RouterProxyConfig.pm
 %defattr(754,apache,apache,-)
 /gnoc/routerproxy/webroot/index.cgi
 %defattr(644,root,apache,-)
