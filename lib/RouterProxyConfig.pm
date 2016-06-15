@@ -56,6 +56,19 @@ sub loadXML {
                                 'ome-commands'      => [],
                                 'ons15454-commands' => []};
 
+    $self->{'exclude_group'} = {'brocade-commands'  => [],
+                                'ciena-commands'    => [],
+                                'force10-commands'  => [],
+                                'hdxc-commands'     => [],
+                                'hp-commands'       => [],
+                                'ios-commands'      => [],
+                                'ios2-commands'     => [],
+                                'ios6509-commands'  => [],
+                                'iosxr-commands'    => [],
+                                'junos-commands'    => [],
+                                'ome-commands'      => [],
+                                'ons15454-commands' => []};
+
     $self->{'frontend'}->{'dropdown'}     = $xml->{'enable-menu-commands'}->[0];
     $self->{'frontend'}->{'network_name'} = $xml->{'network'}->[0];
     $self->{'frontend'}->{'noc_name'}     = $xml->{'noc'}->[0];
@@ -74,18 +87,33 @@ sub loadXML {
                      display     => $xml->{'layer1-collapse'}->[0],
                      description => $xml->{'layer1-title'}->[0],
                      devices     => [] };
+    if (defined $l1_group->{'display'} && $l1_group->{'display'} == 1) {
+        $l1_group->{'display'} = 0; # Negate boolean. If collapse no display.
+    } else {
+        $l1_group->{'display'} = 1;
+    }
     $self->{'device_group'}->{'1'} = $l1_group;
-    
+
     my $l2_group = { name        => $xml->{'layer2-title'}->[0],
                      display     => $xml->{'layer2-collapse'}->[0],
                      description => $xml->{'layer2-title'}->[0],
                      devices     => [] };
+    if (defined $l2_group->{'display'} && $l2_group->{'display'} == 1) {
+        $l2_group->{'display'} = 0; # Negate boolean. If collapse no display.
+    } else {
+        $l2_group->{'display'} = 1;
+    }
     $self->{'device_group'}->{'2'} = $l2_group;
 
     my $l3_group = { name        => $xml->{'layer3-title'}->[0],
                      display     => $xml->{'layer3-collapse'}->[0],
                      description => $xml->{'layer3-title'}->[0],
                      devices     => [] };
+    if (defined $l3_group->{'display'} && $l3_group->{'display'} == 1) {
+        $l3_group->{'display'} = 0; # Negate boolean. If collapse no display.
+    } else {
+        $l3_group->{'display'} = 1;
+    }
     $self->{'device_group'}->{'3'} = $l3_group;
 
 
@@ -104,6 +132,7 @@ sub loadXML {
         # Add configured command group.
         my $_command_group = $_device->{'type'} . '-commands';
         $_device->{'command_group'} = [ $_command_group ];
+        $_device->{'exclude_group'} = [ $_command_group ];
         
         # Add configured device to the device hash.
         $self->{'device'}->{ $_device->{'name'} } = $_device;
@@ -124,6 +153,10 @@ sub loadXML {
         foreach my $cmd (@{$xml->{$cmd_type}->[0]->{'command'}}) {
             push(@{$self->{'command_group'}->{$cmd_type}}, $cmd);
         }
+
+        foreach my $cmd (@{$xml->{$cmd_type}->[0]->{'exclude'}}) {
+            push(@{$self->{'exclude_group'}->{$cmd_type}}, $cmd);
+        }
     }
     
     return 1;
@@ -139,6 +172,43 @@ sub loadJSON {
     my $path = shift;
 }
 
+=head2 CommandsInGroup
+
+Returns a list of commands in command group $name.
+
+=cut
+sub CommandsInGroup {
+    my $self = shift;
+    my $name = shift;
+
+    if (defined $self->{'command_group'}->{$name}) {
+        return \@{$self->{'command_group'}->{$name}};
+    } else {
+        return [];
+    }
+}
+
+=head2 CommandsExcludedFromGroup
+
+Returns a list of commands not in the command group $name.
+
+=cut
+sub CommandsExcludedFromGroup {
+    my $self = shift;
+    my $name = shift;
+
+    if (defined $self->{'exclude_group'}->{$name}) {
+        return \@{$self->{'exclude_group'}->{$name}};
+    } else {
+        return [];
+    }
+}
+
+=head2 Device
+
+Returns the device named $name.
+
+=cut
 sub Device {
     my $self = shift;
     my $name = shift;
@@ -235,31 +305,61 @@ sub MaxTimeout {
     return $self->{'maximum'}->{'timeout'};
 }
 
+=head2 NetworkName
+
+Returns the name of the network.
+
+=cut
 sub NetworkName {
     my $self = shift;
     return $self->{'frontend'}->{'network_name'};
 }
 
+=head2 NOCName
+
+Returns the name of the NOC.
+
+=cut
 sub NOCName {
     my $self = shift;
     return $self->{'frontend'}->{'noc_name'};
 }
 
+=head2 NOCMail
+
+Returns the email of the NOC.
+
+=cut
 sub NOCMail {
     my $self = shift;
     return $self->{'frontend'}->{'noc_mail'};
 }
 
+=head2 NOCSite
+
+Returns a link to the NOC website.
+
+=cut
 sub NOCSite {
     my $self = shift;
     return $self->{'frontend'}->{'noc_site'};
 }
 
+=head2 NOCHelp
+
+Returns a help message.
+
+=cut
 sub NOCHelp {
     my $self = shift;
     return $self->{'frontend'}->{'help'};
 }
 
+=head2 ShowDropdown
+
+Returns 1 if device menues should be shown.
+
+=cut
 sub ShowDropdown {
     my $self = shift;
     return $self->{'frontend'}->{'dropdown'};

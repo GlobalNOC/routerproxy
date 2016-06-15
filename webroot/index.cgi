@@ -88,7 +88,6 @@ unless (defined($config_path) && -e $config_path) {
    exit 1;
 }
 
-my $xml  = XMLin($config_path, forcearray => 1);
 my $conf = RouterProxyConfig->New($config_path);
 
 my $devices  = getDevices($conf);
@@ -269,29 +268,22 @@ sub getMenuCommands {
 }
 
 sub makeHTML {
+  my $network = $conf->NetworkName();
+  my $title   = $network . " Router Proxy";
 
-  my $network = $xml->{'network'}->[0];
-  my $noc = $xml->{'noc'}->[0];
-  my $title = $network . " Router Proxy";
-  my $admin = $xml->{'email'}->[0];
-  my $nocWebsite = $xml->{'noc-website'}->[0];
-  my $commandHelp = $xml->{'command-help'}->[0];
+  my $noc         = $conf->NOCName();
+  my $admin       = $conf->NOCMail();
+  my $nocWebsite  = $conf->NOCSite();
+  my $commandHelp = $conf->NOCHelp();
 
-  my $routerTitle = $xml->{'layer3-title'}->[0];
-  my $switchTitle = $xml->{'layer2-title'}->[0];
-  my $opticalTitle = $xml->{'layer1-title'}->[0];
+  my $groups       = $conf->DeviceGroups();
+  my $routerTitle  = $groups->{'3'}->{'name'};
+  my $switchTitle  = $groups->{'2'}->{'name'};
+  my $opticalTitle = $groups->{'1'}->{'name'};
 
-  my $routerCollapse = $xml->{'layer3-collapse'}->[0];
-  my $switchCollapse = $xml->{'layer2-collapse'}->[0];
-  my $opticalCollapse = $xml->{'layer1-collapse'}->[0];
-
-  my $routerDisplay = "table";
-  my $switchDisplay = "table";
-  my $opticalDisplay = "table";
-
-  $routerDisplay = "none" if ($routerCollapse);
-  $switchDisplay = "none" if ($switchCollapse);
-  $opticalDisplay = "none" if ($opticalCollapse);
+  my $routerDisplay  = $groups->{'3'}->{'display'} ? "table" : "none";
+  my $switchDisplay  = $groups->{'2'}->{'display'} ? "table" : "none";
+  my $opticalDisplay = $groups->{'1'}->{'display'} ? "table" : "none";
 
   my $html = "
 <!DOCTYPE html
@@ -362,7 +354,7 @@ function addJunOS(menu) {
   removeOptions();
   var myArray = new Array();";
 
-  my $commands = $xml->{'junos-commands'}->[0]->{'command'};
+  my $commands = $conf->CommandsInGroup('junos-commands');
   my $i = 0;
   foreach my $command (@$commands) {
     $html .= "myArray[$i] = \"$command\";\n";
@@ -379,7 +371,7 @@ function addIOS() {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'ios-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('ios-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -395,7 +387,7 @@ function addNXOS() {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'nx-os-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('nx-os-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -412,7 +404,7 @@ function addIOS2() {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'ios2-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('ios2-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -427,7 +419,7 @@ function addBrocade(){
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'brocade-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('brocade-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -443,7 +435,7 @@ function addIOS6509() {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'ios6509-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('ios6509-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -459,7 +451,7 @@ function addIOSXR(menu) {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'iosxr-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('iosxr-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -477,7 +469,7 @@ function addHDXC(menu) {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'hdxc-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('hdxc-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -495,7 +487,7 @@ function addONS15454(menu) {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'ons15454-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('ons15454-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -513,7 +505,7 @@ function addOME(menu) {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'ome-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('ome-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -531,7 +523,7 @@ function addCiena(menu) {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'ciena-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('ciena-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -549,7 +541,7 @@ function addForce10() {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'force10-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('force10-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -565,7 +557,7 @@ function addHP() {
   removeOptions();
   var myArray = new Array();";
 
-  $commands = $xml->{'hp-commands'}->[0]->{'command'};
+  $commands = $conf->CommandsInGroup('hp-commands');
   $i = 0;
   foreach my $command (@$commands) {
 
@@ -822,11 +814,11 @@ function toggle(id) {
     $type = "force10-commands";
   }
   elsif ($all_devices[0]->{'type'} eq "hp") {
-    $type = "hp-commands";
-}elsif ($all_devices[0]->{'type'} eq "brocade"){
-    $type = "brocade-commands";
-}
-  my $commands = $xml->{$type}->[0]->{'command'};
+      $type = "hp-commands";
+  }elsif ($all_devices[0]->{'type'} eq "brocade"){
+      $type = "brocade-commands";
+  }
+  my $commands = $conf->CommandsInGroup($type);
   foreach my $command (@$commands) {
     $html .= "<option>$command</option>"
   }
@@ -1304,6 +1296,7 @@ sub getMenuResponse {
   }
 
   my $result;
+  my $xml;
 
   my $last = Logger::getLastTime($logfile);
   my $now = time();
@@ -1697,8 +1690,8 @@ sub validCommand {
     $os = "brocade-commands";
 }
   
-  my $validCommands   = $xml->{$os}->[0]->{'command'};
-  my $excludeCommands = $xml->{$os}->[0]->{'exclude'};
+  my $validCommands   = $conf->CommandsInGroup($os);
+  my $excludeCommands = $conf->CommandsExcludedFromGroup($os);
 
   # first check to see if this command matches one of the deliberately exluded ones
   foreach my $excludeCommand (@$excludeCommands) {

@@ -4,7 +4,7 @@ use warnings;
 use Data::Dumper;
 use FindBin;
 use RouterProxyConfig;
-use Test::More tests => 22;
+use Test::More tests => 24;
 
 my $path   = "$FindBin::Bin/conf/test.conf";
 my $config = RouterProxyConfig->New($path);
@@ -61,3 +61,11 @@ ok($device->{'type'} eq "hp", "Got expected device type.");
 my $commands = $config->DeviceCommands("some switch");
 my $command_count = @{$commands};
 ok($command_count == 7, "Got $command_count device commands.");
+
+my $commands_in_group = $config->CommandsInGroup("brocade-commands");
+my $commands_in_group_count = @{$commands_in_group};
+ok($commands_in_group_count == 7, "Got $commands_in_group_count commands.");
+
+my $commands_not_in_group = $config->CommandsExcludedFromGroup("brocade-commands");
+my $commands_not_in_group_count = @{$commands_not_in_group};
+ok($commands_not_in_group_count == 1, "Got $commands_not_in_group_count commands.");
