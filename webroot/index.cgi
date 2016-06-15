@@ -8,6 +8,7 @@ use CGI::Ajax;
 use FileHandle;
 use XML::Simple;
 use RouterProxy;
+use RouterProxyConfig;
 use Commands;
 use Encode;
 use Data::Dumper;
@@ -87,20 +88,21 @@ unless (defined($config_path) && -e $config_path) {
    exit 1;
 }
 
-my $xml = XMLin($config_path, forcearray => 1);
+my $xml  = XMLin($config_path, forcearray => 1);
+my $conf = RouterProxyConfig->New($config_path);
 
-my $devices = getDevices($xml);
-my @routers = parseRouters();
+my $devices  = getDevices($conf);
+my @routers  = parseRouters();
 my @switches = parseSwitches();
 my @opticals = parseOpticals();
 
 my @all_devices = ( @routers, @switches, @opticals );
 
-my $logfile = $xml->{'log-file'}->[0];
-my $maxlines = $xml->{'max-lines'}->[0];
-my $timeout = $xml->{'timeout'}->[0];
-my $spamSeconds = $xml->{'spam-seconds'}->[0];
-my $global_enable_menu_commands = $xml->{'enable-menu-commands'}->[0];
+my $logfile                     = $conf->LogFile();
+my $maxlines                    = $conf->MaxLines();
+my $timeout                     = $conf->MaxTimeout();
+my $spamSeconds                 = $conf->MaxRate();
+my $global_enable_menu_commands = $conf->ShowDropdown();
 
 my $remoteIP = $ENV{'REMOTE_ADDR'};
 
@@ -642,15 +644,15 @@ function toggle(id) {
         $devicesHTML .= "<tr class=\"primary\">";
       }
 
-      my $name = $device->{'name'}->[0];
-      my $address = $device->{'address'}->[0];
-      my $city = $device->{'city'}->[0];
-      my $state = $device->{'state'}->[0];
-      my $type = $device->{'type'}->[0];
+      my $name = $device->{'name'};
+      my $address = $device->{'address'};
+      my $city = $device->{'city'};
+      my $state = $device->{'state'};
+      my $type = $device->{'type'};
 
       my $location_data = _parseLocationData( city => $city, state => $state);
 
-      my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
+      my $function = FunctionChooser($type, $device->{'enable-menu-commands'});
 
       $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
       if ($i == 2) {
@@ -690,15 +692,15 @@ function toggle(id) {
         $devicesHTML .= "<tr class=\"primary\">";
       }
 
-      my $name = $device->{'name'}->[0];
-      my $address = $device->{'address'}->[0];
-      my $city = $device->{'city'}->[0];
-      my $state = $device->{'state'}->[0];
-      my $type = $device->{'type'}->[0];
+      my $name = $device->{'name'};
+      my $address = $device->{'address'};
+      my $city = $device->{'city'};
+      my $state = $device->{'state'};
+      my $type = $device->{'type'};
       
       my $location_data = _parseLocationData( city => $city, state => $state);
 
-      my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
+      my $function = FunctionChooser($type, $device->{'enable-menu-commands'});
 
       $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
       if ($i == 2) {
@@ -738,14 +740,14 @@ function toggle(id) {
         $devicesHTML .= "<tr class=\"primary\">";
       }
 
-      my $name = $device->{'name'}->[0];
-      my $address = $device->{'address'}->[0];
-      my $city = $device->{'city'}->[0];
-      my $state = $device->{'state'}->[0];
-      my $type = $device->{'type'}->[0];
+      my $name = $device->{'name'};
+      my $address = $device->{'address'};
+      my $city = $device->{'city'};
+      my $state = $device->{'state'};
+      my $type = $device->{'type'};
 
       my $location_data = _parseLocationData( city => $city, state => $state);
-      my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
+      my $function = FunctionChooser($type, $device->{'enable-menu-commands'});
 
       $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
       if ($i == 2) {
@@ -770,8 +772,8 @@ function toggle(id) {
   $html .= "
   <div class=\"menu-commands\" id=\"menu-commands\">";
 
-  my $type1 = $all_devices[0]->{'type'}->[0];
-  my $menu1 = $all_devices[0]->{'enable-menu-commands'}->[0];
+  my $type1 = $all_devices[0]->{'type'};
+  my $menu1 = $all_devices[0]->{'enable-menu-commands'};
   $html .= getMenuCommands($type1, $menu1);
 
   $html .= "</div>
@@ -786,42 +788,42 @@ function toggle(id) {
 
   # grab all the commands
   my $type = "";
-  if ($all_devices[0]->{'type'}->[0] eq "ios") {
+  if ($all_devices[0]->{'type'} eq "ios") {
     $type = "ios-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ios6509") {
+  elsif ($all_devices[0]->{'type'} eq "ios6509") {
     $type = "ios6509-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ios2") {
+  elsif ($all_devices[0]->{'type'} eq "ios2") {
     $type = "ios2-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "junos") {
+  elsif ($all_devices[0]->{'type'} eq "junos") {
     $type = "junos-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "iosxr") {
+  elsif ($all_devices[0]->{'type'} eq "iosxr") {
     $type = "iosxr-commands";
   }
-  elsif ($all_devices[0]->{'type'}-[0] eq "nx-os") {
+  elsif ($all_devices[0]->{'type'} eq "nx-os") {
     $type = "nx-os-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "hdxc") {
+  elsif ($all_devices[0]->{'type'} eq "hdxc") {
     $type = "hdxc-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ons15454") {
+  elsif ($all_devices[0]->{'type'} eq "ons15454") {
     $type = "ons15454-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ome") {
+  elsif ($all_devices[0]->{'type'} eq "ome") {
     $type = "ome-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ciena") {
+  elsif ($all_devices[0]->{'type'} eq "ciena") {
     $type = "ciena-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "force10") {
+  elsif ($all_devices[0]->{'type'} eq "force10") {
     $type = "force10-commands";
   }
-  elsif ($all_devices[0]->{'type'}->[0] eq "hp") {
+  elsif ($all_devices[0]->{'type'} eq "hp") {
     $type = "hp-commands";
-}elsif ($all_devices[0]->{'type'}->[0] eq "brocade"){
+}elsif ($all_devices[0]->{'type'} eq "brocade"){
     $type = "brocade-commands";
 }
   my $commands = $xml->{$type}->[0]->{'command'};
@@ -878,13 +880,13 @@ sub getCienaMenuResponse {
   }
 
   # use my TL1 module to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -945,13 +947,13 @@ sub getOnsMenuResponse {
   }
 
   # use my TL1 module to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -1026,13 +1028,13 @@ sub getOmeMenuResponse {
   }
 
   # use my TL1 module to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -1102,13 +1104,13 @@ sub getHdxcMenuResponse {
   }
 
   # use my TL1 module to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -1198,14 +1200,14 @@ sub getIosMenuResponse {
   }
 
   # use IOS XR XML to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $address = $devices->{$device}->{'address'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $address = $devices->{$device}->{'address'};
 
   my $cisco = Cisco::IOS_XR->new(
                                  host => $address,
-                                 transport => $devices->{$device}->{'method'}->[0],
-                                 username => $devices->{$device}->{'username'}->[0],
-                                 password => $devices->{$device}->{'password'}->[0],
+                                 transport => $devices->{$device}->{'method'},
+                                 username => $devices->{$device}->{'username'},
+                                 password => $devices->{$device}->{'password'},
                                  connection_timeout => $timeout);
 
   if ($cmd eq "bgp") {
@@ -1319,12 +1321,12 @@ sub getMenuResponse {
   }
 
   # use JUNOSCRIPT to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
 
   $username = encode("utf8", $username);
   $password = encode("utf8", $password);
@@ -1482,13 +1484,13 @@ sub getResponse {
     $cmd = $cmd . " " . $args;
   }
 
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   # fix encoding
   Encode::from_to($username, 'utf8', 'iso-8859-1');
@@ -1530,21 +1532,16 @@ sub getResponse {
 }
 
 sub getDevices {
+    my $conf = shift;
 
-  my $xml = shift;
+    my $results = {};
+    my $devices = $conf->Devices();
 
-  my $results = {};
-
-  my $devices = $xml->{'device'};
-
-  foreach my $device ( @$devices ) {
-
-      my $address = $device->{'address'}[0];
-
-      $results->{$address} = $device;
-  }
-
-  return $results;
+    foreach my $name (keys %{$devices}) {
+        my $addr = $devices->{$name}->{'address'};
+        $results->{$addr} = $devices->{$name};
+    }
+    return $results;
 }
 
 sub parseRouters {
@@ -1557,7 +1554,7 @@ sub parseRouters {
     foreach my $hostname ( @hostnames ) {
 	
 	my $device = $devices->{$hostname};
-	my $layer = $device->{'layer'}->[0];
+	my $layer = $device->{'group'};
 	
 	if ($layer == 3) {
 	    
@@ -1565,7 +1562,7 @@ sub parseRouters {
 	}
     }
     
-    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
+    return sort { $a->{'name'} cmp $b->{'name'} } @result;
 }
 
 sub parseSwitches {
@@ -1578,7 +1575,7 @@ sub parseSwitches {
     foreach my $hostname ( @hostnames ) {
 
         my $device = $devices->{$hostname};
-        my $layer = $device->{'layer'}->[0];
+        my $layer = $device->{'group'};
 
         if ($layer == 2) {
 
@@ -1586,7 +1583,7 @@ sub parseSwitches {
 	}
     }
 
-    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
+    return sort { $a->{'name'} cmp $b->{'name'} } @result;
 }
 
 sub parseOpticals {
@@ -1599,7 +1596,7 @@ sub parseOpticals {
     foreach my $hostname ( @hostnames ) {
 
         my $device = $devices->{$hostname};
-        my $layer = $device->{'layer'}->[0];
+        my $layer = $device->{'group'};
 
         if ($layer == 1) {
 
@@ -1607,7 +1604,7 @@ sub parseOpticals {
 	}
     }
 
-    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
+    return sort { $a->{'name'} cmp $b->{'name'} } @result;
 }
 
 sub validCommand {
@@ -1639,7 +1636,7 @@ sub validCommand {
     $command = $command . " " . $args;
   }
 
-  my $type = $devices->{$device}->{'type'}->[0];
+  my $type = $devices->{$device}->{'type'};
   if ($type eq "junos") {
 
     $os = "junos-commands";

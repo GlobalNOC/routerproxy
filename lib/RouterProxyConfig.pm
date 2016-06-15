@@ -16,18 +16,7 @@ sub New {
     # Bless the self hash and class
     bless $self, $class;
 
-    $self->{'command_group'} = {'brocade-commands'  => [],
-                                'ciena-commands'    => [],
-                                'force10-commands'  => [],
-                                'hdxc-commands'     => [],
-                                'hp-commands'       => [],
-                                'ios-commands'      => [],
-                                'ios2-commands'     => [],
-                                'ios6509-commands'  => [],
-                                'iosxr-commands'    => [],
-                                'junos-commands'    => [],
-                                'ome-commands'      => [],
-                                'ons15454-commands' => []};
+    $self->{'command_group'} = {};
     $self->{'device'}        = {};
     $self->{'device_group'}  = {};
     $self->{'frontend'}      = {};
@@ -54,6 +43,19 @@ sub loadXML {
 
     my $xml = XMLin($path, forcearray => 1);
 
+    $self->{'command_group'} = {'brocade-commands'  => [],
+                                'ciena-commands'    => [],
+                                'force10-commands'  => [],
+                                'hdxc-commands'     => [],
+                                'hp-commands'       => [],
+                                'ios-commands'      => [],
+                                'ios2-commands'     => [],
+                                'ios6509-commands'  => [],
+                                'iosxr-commands'    => [],
+                                'junos-commands'    => [],
+                                'ome-commands'      => [],
+                                'ons15454-commands' => []};
+
     $self->{'frontend'}->{'dropdown'}     = $xml->{'enable-menu-commands'}->[0];
     $self->{'frontend'}->{'network_name'} = $xml->{'network'}->[0];
     $self->{'frontend'}->{'noc_name'}     = $xml->{'noc'}->[0];
@@ -72,19 +74,19 @@ sub loadXML {
                      display     => $xml->{'layer1-collapse'}->[0],
                      description => $xml->{'layer1-title'}->[0],
                      devices     => [] };
-    $self->{'device_group'}->{$l1_group->{'name'}} = $l1_group;
+    $self->{'device_group'}->{'1'} = $l1_group;
     
     my $l2_group = { name        => $xml->{'layer2-title'}->[0],
                      display     => $xml->{'layer2-collapse'}->[0],
                      description => $xml->{'layer2-title'}->[0],
                      devices     => [] };
-    $self->{'device_group'}->{$l2_group->{'name'}} = $l2_group;
+    $self->{'device_group'}->{'2'} = $l2_group;
 
     my $l3_group = { name        => $xml->{'layer3-title'}->[0],
                      display     => $xml->{'layer3-collapse'}->[0],
                      description => $xml->{'layer3-title'}->[0],
                      devices     => [] };
-    $self->{'device_group'}->{$l3_group->{'name'}} = $l3_group;
+    $self->{'device_group'}->{'3'} = $l3_group;
 
 
     foreach my $device (@{$xml->{'device'}}) {
@@ -108,11 +110,11 @@ sub loadXML {
 
         # Add configured device to the proper device group.
         if ($_device->{'group'} == 1) {
-            push(@{$self->{'device_group'}->{$l1_group->{'name'}}->{'devices'}}, $_device);
+            push(@{$self->{'device_group'}->{'1'}->{'devices'}}, $_device);
         } elsif ($_device->{'group'} == 2) {
-            push(@{$self->{'device_group'}->{$l2_group->{'name'}}->{'devices'}}, $_device);
+            push(@{$self->{'device_group'}->{'2'}->{'devices'}}, $_device);
         } elsif ($_device->{'group'} == 3) {
-            push(@{$self->{'device_group'}->{$l3_group->{'name'}}->{'devices'}}, $_device);
+            push(@{$self->{'device_group'}->{'3'}->{'devices'}}, $_device);
         } else {
             warn "Device $_device->{'name'} was not added to a device group.";
         }
