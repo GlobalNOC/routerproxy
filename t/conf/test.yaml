@@ -1,0 +1,57 @@
+general:
+  logging:     "/tmp/routerproxy.log"
+  max_lines:   2500
+  max_timeout: 60
+  max_rate:    5
+  redact:
+    - "(?&#60;&#61;\+)\d+"
+
+frontend:
+  dropdown:     0
+  network_name: "Some Network"
+  noc_name:     "Some NOC"
+  noc_site:     "http://127.0.0.1"
+  noc_mail:     "noc@indiana.gigapop.net"
+  help:         "This is a help message."
+
+device_group:
+  1:
+    name: "Optical Gear"
+    display: 1
+    description: ""
+  2:
+    name: "Core Switches"
+    display: 1
+    description: ""
+  3:
+    name: "Core Routers"
+    display: 1
+    description: ""
+
+device:
+  - name:         "some switch"
+    address:      "127.0.0.1"
+    city:         "Indianapolis"
+    # Maps to a device group name
+    device_group: "2"
+    method:       "ssh"
+    password:     "some password"
+    state:        "IN"
+    type:         "hp"
+    username:     "some username"
+    command_group:
+      - "brocade-commands"
+    exclude_group:
+      - "ex-brocade-commands"
+
+command_group:
+  brocade-commands:
+    - "show version"
+    - "show interfaces"
+    - "show media"
+    - "show mod"
+    - "show openflow"
+    - "show optic"
+    - "show tm"
+  ex-brocade-commands:
+    - "show config"

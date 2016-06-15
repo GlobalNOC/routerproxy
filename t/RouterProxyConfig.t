@@ -6,7 +6,7 @@ use FindBin;
 use RouterProxyConfig;
 use Test::More tests => 24;
 
-my $path   = "$FindBin::Bin/conf/test.conf";
+my $path   = "$FindBin::Bin/conf/test.yaml";
 my $config = RouterProxyConfig->New($path);
 
 my $log_file = $config->LogFile();
@@ -52,7 +52,7 @@ ok($device->{'name'} eq "some switch", "Got expected device name.");
 ok($device->{'username'} eq "some username", "Got expected device username.");
 ok($device->{'state'} eq "IN", "Got expected device state.");
 ok($device->{'city'} eq "Indianapolis", "Got expected device city.");
-ok($device->{'group'} eq "2", "Got expected device layer.");
+ok($device->{'device_group'} eq "2", "Got expected device layer.");
 ok($device->{'password'} eq "some password", "Got expected device password.");
 ok($device->{'address'} eq "127.0.0.1", "Got expected device address.");
 ok($device->{'method'} eq "ssh", "Got expected device method.");

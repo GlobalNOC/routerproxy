@@ -7,6 +7,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 use XML::Simple;
+use YAML;
 
 sub New {
     my $class = shift;
@@ -26,7 +27,7 @@ sub New {
     if (index($path, ".xml") != -1 || index($path, ".conf") != -1) {
         $self->loadXML($path);
     } else {
-        $self->loadJSON($path);
+        $self->loadYAML($path);
     }
 
     return $self;
@@ -123,7 +124,7 @@ sub loadXML {
         $_device->{'username'} = $device->{'username'}->[0];
         $_device->{'state'}    = $device->{'state'}->[0];
         $_device->{'city'}     = $device->{'city'}->[0];
-        $_device->{'group'}    = $device->{'layer'}->[0];
+        $_device->{'device_group'} = $device->{'layer'}->[0];
         $_device->{'password'} = $device->{'password'}->[0];
         $_device->{'address'}  = $device->{'address'}->[0];
         $_device->{'method'}   = $device->{'method'}->[0];
@@ -138,11 +139,11 @@ sub loadXML {
         $self->{'device'}->{ $_device->{'name'} } = $_device;
 
         # Add configured device to the proper device group.
-        if ($_device->{'group'} == 1) {
+        if ($_device->{'device_group'} == 1) {
             push(@{$self->{'device_group'}->{'1'}->{'devices'}}, $_device);
-        } elsif ($_device->{'group'} == 2) {
+        } elsif ($_device->{'device_group'} == 2) {
             push(@{$self->{'device_group'}->{'2'}->{'devices'}}, $_device);
-        } elsif ($_device->{'group'} == 3) {
+        } elsif ($_device->{'device_group'} == 3) {
             push(@{$self->{'device_group'}->{'3'}->{'devices'}}, $_device);
         } else {
             warn "Device $_device->{'name'} was not added to a device group.";
@@ -167,9 +168,38 @@ sub loadXML {
 Loads configuration from a JSON file.
 
 =cut
-sub loadJSON {
+sub loadYAML {
     my $self = shift;
     my $path = shift;
+
+    my $yaml = YAML::LoadFile($path);
+    
+    $self->{'frontend'} = $yaml->{'frontend'};
+
+    # TODO: Save these in $self->{'general'}
+    $self->{'logging'}                    = $yaml->{'general'}->{'logging'};
+    $self->{'maximum'}->{'lines'}         = $yaml->{'general'}->{'max_lines'};
+    $self->{'maximum'}->{'timeout'}       = $yaml->{'general'}->{'max_timeout'};
+    $self->{'maximum'}->{'rate'}          = $yaml->{'general'}->{'max_rate'};
+    $self->{'redact'}                     = $yaml->{'general'}->{'redact'};
+
+    $self->{'command_group'} = $yaml->{'command_group'};
+    $self->{'exclude_group'} = $yaml->{'exclude_group'};
+
+    foreach my $name (keys %{$yaml->{'device_group'}}) {
+        $self->{'device_group'}->{$name} = $yaml->{'device_group'}->{$name};
+        $self->{'device_group'}->{$name}->{'devices'} = [];
+    }
+
+    $self->{'device'} = {};
+    foreach my $device (@{$yaml->{'device'}}) {
+        $self->{'device'}->{$device->{'name'}} = $device;
+
+        # Associate device with its device group.
+        my $name = $self->{'device'}->{$device->{'name'}}->{'device_group'};
+        push(@{$self->{'device_group'}->{$name}->{'devices'}},
+             $self->{'device'}->{$device->{'name'}});
+    }
 }
 
 =head2 CommandsInGroup
