@@ -1547,7 +1547,7 @@ sub parseRouters {
     foreach my $hostname ( @hostnames ) {
 	
 	my $device = $devices->{$hostname};
-	my $layer = $device->{'group'};
+	my $layer = $device->{'device_group'};
 	
 	if ($layer == 3) {
 	    
@@ -1568,7 +1568,7 @@ sub parseSwitches {
     foreach my $hostname ( @hostnames ) {
 
         my $device = $devices->{$hostname};
-        my $layer = $device->{'group'};
+        my $layer = $device->{'device_group'};
 
         if ($layer == 2) {
 
@@ -1589,7 +1589,7 @@ sub parseOpticals {
     foreach my $hostname ( @hostnames ) {
 
         my $device = $devices->{$hostname};
-        my $layer = $device->{'group'};
+        my $layer = $device->{'device_group'};
 
         if ($layer == 1) {
 
