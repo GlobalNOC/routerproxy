@@ -4,9 +4,9 @@ use warnings;
 use Data::Dumper;
 use FindBin;
 use RouterProxyConfig;
-use Test::More tests => 24;
+use Test::More tests => 25;
 
-my $path   = "$FindBin::Bin/conf/test.yaml";
+my $path   = "$FindBin::Bin/conf/test.conf";
 my $config = RouterProxyConfig->New($path);
 
 my $log_file = $config->LogFile();
@@ -69,3 +69,7 @@ ok($commands_in_group_count == 7, "Got $commands_in_group_count commands.");
 my $commands_not_in_group = $config->CommandsExcludedFromGroup("brocade-commands");
 my $commands_not_in_group_count = @{$commands_not_in_group};
 ok($commands_not_in_group_count == 1, "Got $commands_not_in_group_count commands.");
+
+my $redacts = $config->Redacts();
+my $redact_count = @{$redacts};
+ok ($redact_count == 1, "Got $redact_count redact regexs.");

@@ -83,6 +83,13 @@ sub loadXML {
     $self->{'maximum'}->{'timeout'}       = $xml->{'timeout'}->[0];
     $self->{'maximum'}->{'rate'}          = $xml->{'spam-seconds'}->[0];
 
+    $self->{'redact'}                     = [];
+    if (defined $xml->{'redact-stanzas'} && defined $xml->{'redact-stanzas'}->[0]) {
+        foreach my $s (@{$xml->{'redact-stanzas'}->[0]->{'stanza'}}) {
+            push(@{$self->{'redact'}}, $s);
+        }
+    }
+
     # Create device groups for layer1, layer2, and layer3 devices.
     my $l1_group = { name        => $xml->{'layer1-title'}->[0],
                      display     => $xml->{'layer1-collapse'}->[0],
@@ -200,6 +207,16 @@ sub loadYAML {
         push(@{$self->{'device_group'}->{$name}->{'devices'}},
              $self->{'device'}->{$device->{'name'}});
     }
+}
+
+=head2 Redacts
+
+Returns a list of redact regexs.
+
+=cut
+sub Redacts {
+    my $self = shift;
+    return \@{$self->{'redact'}};
 }
 
 =head2 CommandsInGroup
