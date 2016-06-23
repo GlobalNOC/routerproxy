@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+use warnings;
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
@@ -13,6 +14,9 @@ use Commands;
 use Encode;
 use Data::Dumper;
 use GRNOC::Config;
+use Template;
+
+use JSON;
 
 # set our home directory relative to our script
 my $home_dir = "$FindBin::Bin/../";
@@ -74,8 +78,8 @@ my $ajax = CGI::Ajax->new(
                           'getOnsMenuResponse' => \&getOnsMenuResponse,
                           'getCienaMenuResponse' => \&getCienaMenuResponse
                          );
-#$ajax->DEBUG(1);
-#$ajax->JSDEBUG(1);
+$ajax->DEBUG(1);
+$ajax->JSDEBUG(1);
 my $config_path = ConfigChooser($ENV{'REQUEST_URI'}, "/etc/grnoc/routerproxy/routerproxy_mappings.xml");
 
 unless (defined($config_path) && -e $config_path) {
@@ -127,6 +131,7 @@ $cienaMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><l
 
 print $ajax->build_html($cgi, \&makeHTML);
 
+#makeHTML2(); # Prints HTML to STDOUT
 
 sub ConfigChooser {
   my $url = shift;
@@ -265,6 +270,80 @@ sub getMenuCommands {
    }
   
    return $menu;
+}
+
+
+sub getDevice {
+    my $addr = $cgi->param('address');
+
+    # Create a copy of the device data and remove all secrets.
+    my $data = $devices->{$addr};
+    $data->{"commands"}    = $conf->DeviceCommands($data->{"name"});
+    $data->{"enable_menu"} = $global_enable_menu_commands;
+    
+    delete $data->{"username"};
+    delete $data->{"password"};
+    delete $data->{"method"};
+    delete $data->{"command_group"};
+    delete $data->{"exclude_group"};
+
+    print $cgi->header(type => "text/html");
+    print encode_json($data);
+}
+
+sub getResponses {
+    print $cgi->header(type => "text/plain");
+    print "Response";
+}
+
+sub getError {
+    print $cgi->header(type => "text/html");
+    print "hello";
+}
+
+sub makeHTML2 {
+    my $tt = Template->new({ ABSOLUTE => 1 });
+    my $input = "/gnoc/routerproxy/templates/index.tt";
+
+    # If $handler is defined outside the makeHTML2 subroutine an error
+    # is returned.
+    #
+    # Can't use string ("") as a subroutine ref while "strict refs" in
+    # use at /gnoc/routerproxy/webroot/index.cgi line 302.
+    my $handler = { device => \&getDevice,
+                    error  => \&getError,
+                    submit => \&getResponses
+                  };
+
+    # Check if a method has been called on this CGI.
+    my $method = $cgi->param('method');
+    if (defined $method) {
+        if (!defined  $handler->{$method}) {
+            $handler->{"error"}->();
+        } else {
+            $handler->{$method}->();
+        }
+        return;
+    }
+
+    # Convert hash into array. Config shall be modified to use an array.
+    my $device_groups = $conf->DeviceGroups();
+    my $groups = [];
+    foreach my $name (keys %{$device_groups}) {
+        push(@{$groups}, $device_groups->{$name});
+    }
+
+    my $html = "";
+    my $vars = { network_name => $conf->NetworkName(),
+                 noc_mail     => $conf->NOCMail(),
+                 noc_name     => $conf->NOCName(),
+                 noc_site     => $conf->NOCSite(),
+                 groups       => $groups
+               };
+    $tt->process($input, $vars, \$html);
+
+    print $cgi->header(type => "text/html");
+    print $html;
 }
 
 sub makeHTML {
@@ -621,15 +700,15 @@ function toggle(id) {
 
   if (@routers > 0) {
 
-    $html .= "<div class=\"devices\">
+      $html .= "<div class=\"devices\">
     <table class=\"title\">
     <tr class=\"menu-title\" onclick=\"toggle('router-menu');\"><td colspan=\"3\">$routerTitle</td></tr>
     </table>
     <table id='router-menu' style='display: $routerDisplay'>";
 
-    my $devicesHTML = "";
-    my $i = 0;
-
+      my $devicesHTML = "";
+      my $i = 0;
+      
     foreach my $device (@routers) {
 
       if ($i == 0) {
@@ -659,8 +738,8 @@ function toggle(id) {
     elsif ($i == 2) {
       $devicesHTML .= "<td></td></tr>";
     }
-    $html .= $devicesHTML;
-    $html .= "
+      $html .= $devicesHTML;
+      $html .= "
     </table>
   </div>
   <br />";
@@ -818,7 +897,7 @@ function toggle(id) {
   }elsif ($all_devices[0]->{'type'} eq "brocade"){
       $type = "brocade-commands";
   }
-  my $commands = $conf->CommandsInGroup($type);
+  $commands = $conf->CommandsInGroup($type);
   foreach my $command (@$commands) {
     $html .= "<option>$command</option>"
   }
@@ -844,7 +923,7 @@ function toggle(id) {
   document.getElementById('response').style.display='none';
 </script>
 </html>";
-
+  
   return $html;
 }
 
