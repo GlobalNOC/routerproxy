@@ -274,14 +274,90 @@ sub getDevice {
 }
 
 sub getResponses {
-    my $address = $cgi->param("address");
-    my $command = $cgi->param("command");
-
+    my $address   = $cgi->param("address");
+    my $command   = $cgi->param("command");
+    my $arguments = $cgi->param("arguments");
+    
     my $device = $devices->{$address};
+    if (!defined $device) {
+        print $cgi->header(type => "text/html");
+        print "Requested device is not configured.  Please reload the page.";
+        return;
+    }
 
+    my $dropdown = $global_enable_menu_commands;
+    my $data     = ""
+
+    if ($dropdown && $device->{"type"} eq "junos") {
+        $data = getMenuResponse($command, $arguments, $device);
+    } elsif ($dropdown && $device->{"type"} eq "iosxr") {
+        $data = getIosMenuResponse($command, $arguments, $device);
+    } elsif ($dropdown && $device->{"type"} eq "hdxc") {
+        $data = getHdxcMenuResponse($command, $arguments, $device);
+    } elsif ($dropdown && $device->{"type"} eq "ons15454") {
+        $data = getOnsMenuResponse($command, $arguments, $device);
+    } elsif ($dropdown && $device->{"type"} eq "ome") {
+        $data = getOmeMenuResponse($command, $arguments, $device);
+    } elsif ($dropdown && $device->{"type"} eq "ciena") {
+        $data = getCienaMenuResponse($command, $arguments, $device);
+    } else {
+        $data = getResponse($command, $arguments, $device);
+    }
 
     print $cgi->header(type => "text/html");
-    print "Response";
+    print "$data";
+}
+
+
+sub getResponse {
+    my $command   = shift;
+    my $arguments = shift;
+    my $device    = shift;
+
+    my $last = Logger::getLastTime($logfile);
+    my $now  = time();
+    my $diff = $now - $last;
+    if ($diff < $spamSeconds) {
+        my $wait = $spamSeconds - $diff;
+        return "Please wait $wait seconds before sending another command.";
+    }
+
+    Logger::addEntry($logfile, $remoteIP, $device, $command . " " . $arguments);
+    if (!validCommand($command, $arguments, $device)) {
+        return "Disabled Command.";
+    }
+
+    if ($arguments ne "") {
+        $command = $command . " " . $arguments;
+    }
+
+    my $name     = $device->{'name'};
+    my $hostname = $device->{'address'};
+    my $method   = $device->{'method'};
+    my $username = $device->{'username'};
+    my $password = $device->{'password'};
+    my $type     = $device->{'type'};
+    my $port     = $device->{'port'};
+
+    # Fix encoding. I don't know why. This is legecy.
+    Encode::from_to($username, 'utf8', 'iso-8859-1');
+    Encode::from_to($password, 'utf8', 'iso-8859-1');
+
+    my $proxy = RouterProxy->new( hostname    => $hostname,
+                                  port        => $port,
+                                  username    => $username,
+                                  password    => $password,
+                                  method      => $method,
+                                  type        => $type,
+                                  maxlines    => $maxlines,
+                                  config_path => $config_path,
+                                  timeout     => $timeout
+                                );
+    my $result = $proxy->command($command);
+
+    # End the timer if the command was successful.
+    alarm(0);
+    return $result;
 }
 
 sub getError {
@@ -1471,87 +1547,6 @@ sub getMenuResponse {
   return ($result, "");
 }
 
-sub getResponse {
-
-  my $cmd = shift;
-  my $args = shift;
-
-  # I have no idea why I have to do this extra shift...
-  shift;
-
-  my $device = shift;
-
-  my $last = Logger::getLastTime($logfile);
-  my $now = time();
-  my $diff = $now - $last;
-  if ($diff < $spamSeconds) {
-    my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
-  }
-
-  # make sure the device exists in the config
-  if ( !defined( $devices->{$device} ) ) {
-
-      return ("Requested device is not configured.  Please reload the page.", "" );
-  }
-
-  Logger::addEntry($logfile, $remoteIP, $device, $cmd . " " . $args);
-
-  if (!validCommand($cmd, $args, $device)) {
-
-    return ("Disabled Command.", "");
-  }
-
-  if ($args ne "") {
-    $cmd = $cmd . " " . $args;
-  }
-
-  my $name = $devices->{$device}->{'name'};
-  my $hostname = $devices->{$device}->{'address'};
-  my $method = $devices->{$device}->{'method'};
-  my $username = $devices->{$device}->{'username'};
-  my $password = $devices->{$device}->{'password'};
-  my $type = $devices->{$device}->{'type'};
-  my $port = $devices->{$device}->{'port'};
-
-  # fix encoding
-  Encode::from_to($username, 'utf8', 'iso-8859-1');
-  Encode::from_to($password, 'utf8', 'iso-8859-1');
-
-  my $result = "
-<table class=\"no-border\">
-<tr class=\"menu-title\"><td>Response From $name</td></tr>
-<tr class=\"primary\">
-<td>
-<pre>";
-
-  my $proxy = RouterProxy->new(
-                               hostname => $hostname,
-                               port => $port,
-                               username => $username,
-                               password => $password,
-                               method => $method,
-                               type => $type,
-                               maxlines => $maxlines,
-                               config_path => $config_path,
-                               timeout => $timeout
-                              );
-
-  my $output = $proxy->command($cmd);
-
-  # end the timer if the command was successful
-  alarm(0);
-
-  $result .= $output;
-  $result .= "
-</pre>
-</td>
-</tr>
-</table>
-";
-
-  return ($result, "");
-}
 
 sub getDevices {
     my $conf = shift;
