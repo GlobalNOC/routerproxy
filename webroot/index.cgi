@@ -5,7 +5,6 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 use CGI;
-use CGI::Ajax;
 use FileHandle;
 use XML::Simple;
 use RouterProxy;
@@ -25,33 +24,29 @@ $ENV{'HOME'} = $home_dir;
 # do they have Junoscript installed?
 my $hasJunoscript;
 BEGIN {
-
-  eval {
-    require JUNOS::Device;
-  };
-  if ($@) {
-    $hasJunoscript = 0;
-  }
-  else {
-    $hasJunoscript = 1;
-    JUNOS::Device->import;
-  }
+    eval {
+        require JUNOS::Device;
+    };
+    if ($@) {
+        $hasJunoscript = 0;
+    } else {
+        $hasJunoscript = 1;
+        JUNOS::Device->import;
+    }
 }
 
 # do they have IOS XR XML installed?
 my $hasIosXML;
 BEGIN {
-
-  eval {
-    require Cisco::IOS_XR;
-  };
-  if ($@) {
-    $hasIosXML = 0;
-  }
-  else {
-    $hasIosXML = 1;
-    Cisco::IOS_XR->import;
-  }
+    eval {
+        require Cisco::IOS_XR;
+    };
+    if ($@) {
+        $hasIosXML = 0;
+    } else {
+        $hasIosXML = 1;
+        Cisco::IOS_XR->import;
+    }
 }
 
 use GRNOC::TL1;
@@ -69,35 +64,25 @@ use strict;
 local $ENV{'XML_SIMPLE_PREFERRED_PARSER'} = 'XML::Parser';
 
 my $cgi = CGI->new();
-my $ajax = CGI::Ajax->new(
-                          'getResponse' => \&getResponse,
-                          'getMenuResponse' => \&getMenuResponse,
-                          'getIosMenuResponse' => \&getIosMenuResponse,
-                          'getHdxcMenuResponse' => \&getHdxcMenuResponse,
-                          'getOmeMenuResponse' => \&getOmeMenuResponse,
-                          'getOnsMenuResponse' => \&getOnsMenuResponse,
-                          'getCienaMenuResponse' => \&getCienaMenuResponse
-                         );
-$ajax->DEBUG(1);
-$ajax->JSDEBUG(1);
-my $config_path = ConfigChooser($ENV{'REQUEST_URI'}, "/etc/grnoc/routerproxy/routerproxy_mappings.xml");
+my $config_path = ConfigChooser( $ENV{'REQUEST_URI'},
+                                 "/etc/grnoc/routerproxy/routerproxy_mappings.xml");
 
 unless (defined($config_path) && -e $config_path) {
-   warn ("Please check mapping file. The config file for this url cannot be located\n");
-   print $cgi->header();
-   print $cgi->start_html();
-   print "<H2>Please check mapping file. The config file for this url cannot be located</H2>";
-   print $cgi->end_html();
-   
-   exit 1;
+    warn ("Please check mapping file. The config file for this url cannot be located\n");
+    print $cgi->header();
+    print $cgi->start_html();
+    print "<H2>Please check mapping file. The config file for this url cannot be located</H2>";
+    print $cgi->end_html();
+    
+    exit 1;
 }
 
 my $conf = RouterProxyConfig->New($config_path);
 
 my $devices  = getDevices($conf);
-my @routers  = parseRouters();
-my @switches = parseSwitches();
-my @opticals = parseOpticals();
+my @routers  = ();
+my @switches = ();
+my @opticals = ();
 
 my @all_devices = ( @routers, @switches, @opticals );
 
@@ -129,31 +114,29 @@ $onsMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li>
 
 $cienaMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=cienaMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=cienaMenuCommand('alarms')>Alarms</a></li><li><a onclick=cienaMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
 
-print $ajax->build_html($cgi, \&makeHTML);
-
-#makeHTML2(); # Prints HTML to STDOUT
+# Prints HTML to STDOUT
+makeHTML2();
 
 sub ConfigChooser {
-  my $url = shift;
-  my $map_file = shift;
+    my $url      = shift;
+    my $map_file = shift;
  
-  #if mapping file is not found
-  unless (-e $map_file) {
-     warn ("Mapping file is not found.\n");
-     return undef;
-  }
+    # If mapping file is not found
+    unless (-e $map_file) {
+        warn ("Mapping file is not found.\n");
+        return undef;
+    }
 
-  my $config = GRNOC::Config->new( config_file => $map_file, force_array => 1 );
-  
-  my $entries = $config->get( '/mappings/map' );
+    my $config  = GRNOC::Config->new( config_file => $map_file, force_array => 1 );
+    my $entries = $config->get( '/mappings/map' );
 
-  foreach my $entry ( @$entries ) {
-     my $regexp = $entry->{'regexp'};
-     if ( $url =~ /$regexp/ ) {
-        return $entry->{'config_location'};
-     }
-  }
-  return undef;
+    foreach my $entry ( @$entries ) {
+        my $regexp = $entry->{'regexp'};
+        if ( $url =~ /$regexp/ ) {
+            return $entry->{'config_location'};
+        }
+    }
+    return undef;
 }
 
 sub FunctionChooser {
@@ -162,17 +145,16 @@ sub FunctionChooser {
    my $function = "clearMenu();";
 
    if (defined($global_enable_menu_commands)) {
-      $enable_menu_commands = $global_enable_menu_commands;
+       $enable_menu_commands = $global_enable_menu_commands;
    }
-      if ($type eq "junos") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
+   
+   if ($type eq "junos") {
+       if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
            $function = "addJunOS(1);";
-        }
-        else {
+       } else {
            $function = "addJunOS(0);";
-        }
-           
-      }
+       }
+   }
       elsif ($type eq "ios") {
         $function = "addIOS();";
       }
@@ -274,7 +256,7 @@ sub getMenuCommands {
 
 
 sub getDevice {
-    my $addr = $cgi->param('address');
+    my $addr = $cgi->param("address");
 
     # Create a copy of the device data and remove all secrets.
     my $data = $devices->{$addr};
@@ -292,7 +274,13 @@ sub getDevice {
 }
 
 sub getResponses {
-    print $cgi->header(type => "text/plain");
+    my $address = $cgi->param("address");
+    my $command = $cgi->param("command");
+
+    my $device = $devices->{$address};
+
+
+    print $cgi->header(type => "text/html");
     print "Response";
 }
 
@@ -1051,26 +1039,12 @@ sub getOnsMenuResponse {
     $result = retrCrs(@rows);
   }
 
-  # facilities cmd
-  #elsif ($cmd eq "facilities") {
-
-  #@rows = $tl1->getFacilities();
-  #$result = retrFac(@rows);
-  #}
-
   # inventory cmd
   elsif ($cmd eq "inventory") {
 
     @rows = $tl1->get_inventory();
     $result = retrInv(@rows);
   }
-
-  # ip addresses cmd
-  #elsif ($cmd eq "ipAddresses") {
-
-  #@rows = $tl1->getIPInfo();
-  #$result = retrNeGen(@rows);
-  #}
 
   return ($result, "");
 }
@@ -1139,14 +1113,6 @@ sub getOmeMenuResponse {
     $result = retrInventory2(@rows);
     # ons15454$result = retrInv(@rows);
   }
-
-  # ip addresses cmd
-  #elsif ($cmd eq "ipAddresses") {
-
-  #@rows = $tl1->getIPInfo();
-  #$result = retrIp2(@rows);
-  # ons15454$result = retrNeGen(@rows);
-  #}
 
   return ($result, "");
 }
@@ -1223,22 +1189,6 @@ sub getHdxcMenuResponse {
       $result = retrInv(@rows);
     }
   }
-
-  # ip addresses cmd
-  #elsif ($cmd eq "ipAddresses") {
-
-  #@rows = $tl1->getIPInfo();
-
-  #if ($type eq "hdxc") {
-  #   $result = retrIp(@rows);
-  #}
-  #elsif ($type eq "ome") {
-  #    $result = retrIp2(@rows);
-  #}
-  #else {
-  #    $result = retrNeGen(@rows);
-  #}
-  #}
 
   return ($result, "");
 }
@@ -1614,69 +1564,6 @@ sub getDevices {
         $results->{$addr} = $devices->{$name};
     }
     return $results;
-}
-
-sub parseRouters {
-
-    my @result;
-    my $i = 0;
-    
-    my @hostnames = keys( %$devices );
-    
-    foreach my $hostname ( @hostnames ) {
-	
-	my $device = $devices->{$hostname};
-	my $layer = $device->{'device_group'};
-	
-	if ($layer == 3) {
-	    
-	    $result[$i++] = $device;
-	}
-    }
-    
-    return sort { $a->{'name'} cmp $b->{'name'} } @result;
-}
-
-sub parseSwitches {
-
-    my @result;
-    my $i = 0;
-
-    my @hostnames = keys( %$devices );
-
-    foreach my $hostname ( @hostnames ) {
-
-        my $device = $devices->{$hostname};
-        my $layer = $device->{'device_group'};
-
-        if ($layer == 2) {
-
-            $result[$i++] = $device;
-	}
-    }
-
-    return sort { $a->{'name'} cmp $b->{'name'} } @result;
-}
-
-sub parseOpticals {
-
-    my @result;
-    my $i = 0;
-
-    my @hostnames = keys( %$devices );
-
-    foreach my $hostname ( @hostnames ) {
-
-        my $device = $devices->{$hostname};
-        my $layer = $device->{'device_group'};
-
-        if ($layer == 1) {
-
-            $result[$i++] = $device;
-	}
-    }
-
-    return sort { $a->{'name'} cmp $b->{'name'} } @result;
 }
 
 sub validCommand {
