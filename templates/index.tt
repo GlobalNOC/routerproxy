@@ -5,6 +5,17 @@
   <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
 
   <script>
+    function toggle(id) {
+    var object = document.getElementById(id);
+    var currentDisplay = object.style.display;
+
+    if (currentDisplay == 'none') {
+    object.style.display = 'table';
+    } else {
+    object.style.display = 'none';
+    }
+    }
+o
     function loadCommands(obj) {
     var address = obj.value;
     var url = "?method=device&address=" + address;
@@ -32,9 +43,17 @@
     }
     
     function submitCommand() {
-    var address = obj.value;
-    var command = null;
-    var arguments = null;
+    var devices   = document.getElementsByName("host_radio");
+    var address   = null;
+    var i;
+    for (i = 0; devices.length > i; i++) {
+    if (devices[i].checked) {
+    address = devices[i].value;
+    break;
+    }
+    }
+    var command   = document.getElementById("host_command_select");
+    var arguments = document.getElementById("host_command_text");
     
     var url = "?method=submit&address=" + address + "&command=" + command;
     url = url + "&arguments=" + arguments;
@@ -42,23 +61,13 @@
     var req = new XMLHttpRequest();
     req.onreadystatechange = function() {
     if (req.readyState == 4) { // && req.status == 200) {
-    var select = document.getElementById("host_command_select");
-    var i;
-    for (i = select.options.length -1; i >= 0; i--) {
-    select.remove(i);
-    }
-
-    var data = JSON.parse(req.responseText);
-    for (i = data.commands.length - 1; i >= 0; i--) {
-    var opt = document.createElement("option");
-    opt.text = data.commands[i];
-    opt.value = data.commands[i];
-    select.add(opt);
+    var pre = document.getElementById("result_pre");
+    pre.text = req.responseText;
     }
     }
     }
     req.open("GET", url, true);
-    req.send(null);    
+    req.send(null);
     }
   </script>
 
@@ -193,7 +202,7 @@
           
           [% FOREACH device = group.devices %]
           <div class="host">
-            <input type="radio" id="[% device.name %]" value="[% device.address %]" onchange="loadCommands(this)">
+            <input type="radio" name="host_radio" id="[% device.name %]" value="[% device.address %]" onchange="loadCommands(this)">
             [% device.name %] ([% device.city %], [% device.state %])</input>
           </div>
           [% END %]
@@ -202,18 +211,13 @@
         [% END %]
         
         <div class="host_command">
-          <select class="host_command_select" id="host_command_select">
-            <option value="volvo">show route</option>
-            <option value="saab">Saab</option>
-            <option value="mercedes">Mercedes</option>
-            <option value="audi">Audi</option>
-          </select>
+          <select class="host_command_select" id="host_command_select"></select>
           <input class="host_command_text" type="text"></input>
-          <input class="host_command_button" type="button" value="Submit"></input>
+          <input class="host_command_button" type="button" value="Submit" onclick="submitCommand"></input>
         </div>
 
         <div class="result">
-          <pre><code class="result_pre">
+          <pre><code id="result_pre" class="result_pre">
           </code></pre>
         </div>
       </div>
