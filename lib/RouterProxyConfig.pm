@@ -202,6 +202,11 @@ sub loadYAML {
     foreach my $device (@{$yaml->{'device'}}) {
         $self->{'device'}->{$device->{'name'}} = $device;
 
+        # Ensure that a list is defined for exclude commands.
+        if (!defined $device->{"exclude_group"}) {
+            $device->{"exclude_group"} = [];
+        }
+        
         # Associate device with its device group.
         my $name = $self->{'device'}->{$device->{'name'}}->{'device_group'};
         push(@{$self->{'device_group'}->{$name}->{'devices'}},
@@ -297,6 +302,26 @@ sub DeviceCommands {
 
     foreach my $group (@{$groups}) {
         foreach my $command (@{$self->{'command_group'}->{$group}}) {
+            push(@{$result}, $command);
+        }
+    }
+    return $result;
+}
+
+=head2 DeviceExcludeCommands
+
+Returns the allowed commands for the device named $name.
+
+=cut
+sub DeviceExcludeCommands {
+    my $self = shift;
+    my $name = shift;
+
+    my $result = [];
+    my $groups = $self->{'device'}->{$name}->{'exclude_group'};
+
+    foreach my $group (@{$groups}) {
+        foreach my $command (@{$self->{'exclude_group'}->{$group}}) {
             push(@{$result}, $command);
         }
     }

@@ -9,13 +9,13 @@
     var object = document.getElementById(id);
     var currentDisplay = object.style.display;
 
-    if (currentDisplay == 'none') {
+    if (currentDisplay == "none") {
     object.style.display = 'table';
     } else {
-    object.style.display = 'none';
+    object.style.display = "none";
     }
     }
-o
+    
     function loadCommands(obj) {
     var address = obj.value;
     var url = "?method=device&address=" + address;
@@ -53,8 +53,13 @@ o
     }
     }
     var command   = document.getElementById("host_command_select");
+    command = command.options[command.selectedIndex].value;
     var arguments = document.getElementById("host_command_text");
-    
+    if (arguments == null) {
+    arguments = "";
+    } else {
+    arguments = arguments.value;
+    }
     var url = "?method=submit&address=" + address + "&command=" + command;
     url = url + "&arguments=" + arguments;
 
@@ -62,8 +67,7 @@ o
     req.onreadystatechange = function() {
     if (req.readyState == 4) { // && req.status == 200) {
     var pre = document.getElementById("result_pre");
-    pre.text = req.responseText;
-    }
+    pre.innerHTML = req.responseText;
     }
     }
     req.open("GET", url, true);
@@ -212,8 +216,8 @@ o
         
         <div class="host_command">
           <select class="host_command_select" id="host_command_select"></select>
-          <input class="host_command_text" type="text"></input>
-          <input class="host_command_button" type="button" value="Submit" onclick="submitCommand"></input>
+          <input class="host_command_text" id="host_command_text" type="text"></input>
+          <input class="host_command_button" type="button" value="Submit" onclick="submitCommand(this)"></input>
         </div>
 
         <div class="result">

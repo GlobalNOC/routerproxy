@@ -286,7 +286,7 @@ sub getResponses {
     }
 
     my $dropdown = $global_enable_menu_commands;
-    my $data     = ""
+    my $data     = "";
 
     if ($dropdown && $device->{"type"} eq "junos") {
         $data = getMenuResponse($command, $arguments, $device);
@@ -981,121 +981,56 @@ sub getDevices {
 }
 
 sub validCommand {
+    my $command = shift;
+    my $args    = shift;
+    my $device  = shift;
+    my $os = "";
 
-  my $command = shift;
-  my $args = shift;
-  my $device = shift;
-  my $os = "";
+    # Do not allow non alphanumeric-ish chars. This prevents circumventing
+    # multiple / altered commands.
+    if ($command =~ /[\x00-\x1f]/ || $command =~ /\x7f/ ||
+        $args =~ /[\x00-\x1f]/ || $args =~ /\x7f/) {
+        return 0;
+    }
 
-  # dont allow non alphanumeric-ish chars (to prevent circumventing multiple/altered commands)
-  if ($command =~ /[\x00-\x1f]/ || $command =~ /\x7f/ ||
-      $args =~ /[\x00-\x1f]/ || $args =~ /\x7f/) {
-      return 0;
-  }
+    # Do not allow piping to other commands.
+    if ($args =~ m/\|/) {
+        return 0;
+    }
 
-  # dont allow piping to other commands
-  if ($args =~ m/\|/) {
-   
+    # Do not allow regexp due to IOS vulnerability.
+    if ($args =~ m/regexp/i) {
+        return 0;
+    }
+
+    if ($args ne "") {
+        $command = $command . " " . $args;
+    }
+
+    my $validCommands   = $conf->DeviceCommands($device->{"name"});
+    my $excludeCommands = $conf->DeviceExcludeCommands($device->{"name"});
+
+    # First check to see if this command matches one of the deliberately
+    # exluded ones.
+    foreach my $excludeCommand (@$excludeCommands) {
+        if ($command =~ /$excludeCommand/) {
+            return 0;
+        }
+    }
+
+    foreach my $validCommand (@$validCommands) {
+        # For layer2/3, accept anything which has the prefix of a valid
+        # command.
+        if ($type eq "ciena" || $type eq "hdxc" || $type eq "ons15454" || $type eq "ome") {
+            return 1 if ($command eq $validCommand);
+        }
+        else {
+            $validCommand = "^$validCommand";
+            return 1 if ($command =~ m/$validCommand/);
+        }
+    }
+
     return 0;
-  }
-
-  # dont allow regexp due to IOS vulnerability
-  if ($args =~ m/regexp/i) {
-   
-    return 0;
-  }
-
-  if ($args ne "") {
-    $command = $command . " " . $args;
-  }
-
-  my $type = $devices->{$device}->{'type'};
-  if ($type eq "junos") {
-
-    $os = "junos-commands";
-  }
-
-  elsif ($type eq "ios") {
-
-    $os = "ios-commands";
-  }
-
-  elsif ($type eq "ios6509") {
-
-    $os = "ios6509-commands";
-  }
-  elsif ($type eq "ios2") {
-
-    $os = "ios2-commands";
-  }
-  elsif ($type eq "iosxr") {
-
-    $os = "iosxr-commands";
-  }
-
-  elsif ($type eq "nx-os") {
-
-    $os = "nx-os-commands";
-  }
-
-  elsif ($type eq "ome") {
-
-    $os = "ome-commands";
-  }
-
-  elsif ($type eq "ons15454") {
-
-    $os = "ons15454-commands";
-  }
-
-  elsif ($type eq "hdxc") {
-
-    $os = "hdxc-commands";
-  }
-
-  elsif ($type eq "ciena") {
-
-    $os = "ciena-commands";
-  }
-
-  elsif ($type eq "force10") {
-
-    $os = "force10-commands";
-  }
-
-  elsif ($type eq "hp") {
-
-    $os = "hp-commands";
-}elsif($type eq "brocade"){
-    $os = "brocade-commands";
-}
-  
-  my $validCommands   = $conf->CommandsInGroup($os);
-  my $excludeCommands = $conf->CommandsExcludedFromGroup($os);
-
-  # first check to see if this command matches one of the deliberately exluded ones
-  foreach my $excludeCommand (@$excludeCommands) {
-
-    if ($command =~ /$excludeCommand/) {
-      return 0;
-    }
-
-  }
-
-  foreach my $validCommand (@$validCommands) {
-
-    # for layer2/3, accept anything which has the prefix of a valid command
-    if ($type eq "ciena" || $type eq "hdxc" || $type eq "ons15454" || $type eq "ome") {
-
-      return 1 if ($command eq $validCommand);
-    }
-    else {
-      $validCommand = "^$validCommand";
-      return 1 if ($command =~ m/$validCommand/);
-    }
-  }
-
-  return 0;
 }
 
 sub _parseLocationData {
