@@ -22,3 +22,4 @@ t/RouterProxyConfig.t
 t/TEST
 webroot/index.cgi
 webroot/style.css
+webroot/routerproxy.js

@@ -274,9 +274,10 @@ sub getDevice {
 }
 
 sub getResponses {
-    my $address   = $cgi->param("address");
+    my $address   = $cgi->param("device");
     my $command   = $cgi->param("command");
     my $arguments = $cgi->param("arguments");
+    my $menu_req  = $cgi->param("menu");
     
     my $device = $devices->{$address};
     if (!defined $device) {
@@ -285,21 +286,23 @@ sub getResponses {
         return;
     }
 
-    my $dropdown = $global_enable_menu_commands;
-    my $data     = "";
+    my $menu_enabled = $global_enable_menu_commands;
+    my $data         = "";
 
-    if ($dropdown && $device->{"type"} eq "junos") {
-        $data = getMenuResponse($command, $arguments, $device);
-    } elsif ($dropdown && $device->{"type"} eq "iosxr") {
-        $data = getIosMenuResponse($command, $arguments, $device);
-    } elsif ($dropdown && $device->{"type"} eq "hdxc") {
-        $data = getHdxcMenuResponse($command, $arguments, $device);
-    } elsif ($dropdown && $device->{"type"} eq "ons15454") {
-        $data = getOnsMenuResponse($command, $arguments, $device);
-    } elsif ($dropdown && $device->{"type"} eq "ome") {
-        $data = getOmeMenuResponse($command, $arguments, $device);
-    } elsif ($dropdown && $device->{"type"} eq "ciena") {
-        $data = getCienaMenuResponse($command, $arguments, $device);
+    if ($menu_req && $menu_enabled && $device->{"type"} eq "junos") {
+        $data = getMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "iosxr") {
+        $data = getIosMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "hdxc") {
+        $data = getHdxcMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "ons15454") {
+        $data = getOnsMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "ome") {
+        $data = getOmeMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "ciena") {
+        $data = getCienaMenuResponse($command, $device);
+    } elsif ($menu_req) {
+        $data = "Menu enabled requests are not configured for this device. Please reload the page.";
     } else {
         $data = getResponse($command, $arguments, $device);
     }
@@ -984,7 +987,7 @@ sub validCommand {
     my $command = shift;
     my $args    = shift;
     my $device  = shift;
-    my $os = "";
+    my $type    = $device->{"type"};
 
     # Do not allow non alphanumeric-ish chars. This prevents circumventing
     # multiple / altered commands.
@@ -1023,8 +1026,7 @@ sub validCommand {
         # command.
         if ($type eq "ciena" || $type eq "hdxc" || $type eq "ons15454" || $type eq "ome") {
             return 1 if ($command eq $validCommand);
-        }
-        else {
+        } else {
             $validCommand = "^$validCommand";
             return 1 if ($command =~ m/$validCommand/);
         }

@@ -4,76 +4,7 @@
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css"/>
   <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
 
-  <script>
-    function toggle(id) {
-    var object = document.getElementById(id);
-    var currentDisplay = object.style.display;
-
-    if (currentDisplay == "none") {
-    object.style.display = 'table';
-    } else {
-    object.style.display = "none";
-    }
-    }
-    
-    function loadCommands(obj) {
-    var address = obj.value;
-    var url = "?method=device&address=" + address;
-
-    var req = new XMLHttpRequest();
-    req.onreadystatechange = function() {
-    if (req.readyState == 4) { // && req.status == 200) {
-    var select = document.getElementById("host_command_select");
-    var i;
-    for (i = select.options.length -1; i >= 0; i--) {
-    select.remove(i);
-    }
-
-    var data = JSON.parse(req.responseText);
-    for (i = data.commands.length - 1; i >= 0; i--) {
-    var opt = document.createElement("option");
-    opt.text = data.commands[i];
-    opt.value = data.commands[i];
-    select.add(opt);
-    }
-    }
-    }
-    req.open("GET", url, true);
-    req.send(null);
-    }
-    
-    function submitCommand() {
-    var devices   = document.getElementsByName("host_radio");
-    var address   = null;
-    var i;
-    for (i = 0; devices.length > i; i++) {
-    if (devices[i].checked) {
-    address = devices[i].value;
-    break;
-    }
-    }
-    var command   = document.getElementById("host_command_select");
-    command = command.options[command.selectedIndex].value;
-    var arguments = document.getElementById("host_command_text");
-    if (arguments == null) {
-    arguments = "";
-    } else {
-    arguments = arguments.value;
-    }
-    var url = "?method=submit&address=" + address + "&command=" + command;
-    url = url + "&arguments=" + arguments;
-
-    var req = new XMLHttpRequest();
-    req.onreadystatechange = function() {
-    if (req.readyState == 4) { // && req.status == 200) {
-    var pre = document.getElementById("result_pre");
-    pre.innerHTML = req.responseText;
-    }
-    }
-    req.open("GET", url, true);
-    req.send(null);
-    }
-  </script>
+  <script type="text/javascript" src="routerproxy.js"></script>
 
   <style>
     .routerproxy {
@@ -182,6 +113,7 @@
     margin: 0px 5px;
     }
     }
+    
   </style>
 
   <head>
@@ -220,9 +152,126 @@
           <input class="host_command_button" type="button" value="Submit" onclick="submitCommand(this)"></input>
         </div>
 
-        <div class="result">
-          <pre><code id="result_pre" class="result_pre">
+        <!-- BEGIN COMMAND MENUS -->
+        <div class="menu_table" id="junos_menu">
+          <ul>
+            <li><a>Hardware</a>
+              <ul>
+                <li><a onclick=submitMenuCommand('environment')>Environment</a></li>
+                <li><a onclick=submitMenuCommand('filesystem')>File System</a></li>
+                <li><a onclick=submitMenuCommand('interfaces')>Interfaces</a></li>
+                <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+              </ul>
+            </li>
+            <li><a>Protocols</a>
+              <ul>
+                <li><a onclick=submitMenuCommand('bgp')>BGP</a></li>
+                <li><a onclick=submitMenuCommand('ipv6Neighbors')>IPV6 Neighbors</a></li>
+                <li><a onclick=submitMenuCommand('isis')>ISIS Adjacencies</a></li>
+                <li><a onclick=submitMenuCommand('msdp')>MSDP</a></li>
+                <li><a onclick=submitMenuCommand('multicastStatistics')>Multicast Statistics</a></li>
+                <li><a onclick=submitMenuCommand('snmpStatistics')>SNMP Statistics</a></li>
+              </ul>
+            </li>
+            <li><a>System</a>
+              <ul>
+                <li><a onclick=submitMenuCommand('bootMessages')>Boot Messages</a></li>
+                <li><a onclick=submitMenuCommand('version')>Version</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="menu_table" id="ios_menu">
+          <ul>
+            <li><a>Hardware</a>
+              <ul>
+                <li><a onclick=submitMenuCommand('interfaces')>Interfaces</a></li>
+                <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+              </ul>
+            </li>
+            <li><a>Protocols</a>
+              <ul>
+                <li><a onclick=submitMenuCommand('bgp')>BGP</a></li>
+                <li><a onclick=submitMenuCommand('ipv6Neighbors')>IPv6 Neighbors</a></li>
+                <li><a onclick=submitMenuCommand('isis')>ISIS</a></li>
+                <li><a onclick=submitMenuCommand('msdp')>MSDP</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+
+        <div class="menu_table" id="hdxc_menu"><table class='menu-table'>
+            <ul>
+              <li><a>Hardware</a>
+                <ul>
+                  <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                </ul>
+              </li>
+              <li><a>System</a>
+                <ul>
+                  <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
+                  <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                </ul>
+              </li>
+            </ul>
+        </div>
+
+        <div class="menu_table" id="ome_menu"><table class='menu-table'>
+            <ul>
+              <li><a>Hardware</a>
+                <ul>
+                  <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                </ul>
+              </li>
+              <li><a>System</a>
+                <ul>
+                  <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
+                  <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                </ul>
+              </li>
+            </ul>
+        </div>
+
+        <div class="menu_table" id="ons_menu"><table class='menu-table'>
+            <ul id='menu'>
+              <li><a>Hardware</a>
+                <ul>
+                  <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                </ul>
+              </li>
+              <li><a>System</a>
+                <ul>
+                  <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
+                  <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                </ul>
+              </li>
+            </ul>
+        </div>
+
+        <div class="menu_table" id="ciena_menu">
+          <ul>
+            <li><a>Hardware</a>
+              <ul>
+                <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+              </ul>
+            </li>
+            <li><a>System</a>
+              <ul>
+                <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
+                <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <!-- END COMMAND MENUS -->
+
+        <div class="result" id="result">
+          <pre><code class="result_pre" id="result_pre">
           </code></pre>
+        </div>
+
+        <div class="result" id="menu_result">
         </div>
       </div>
 
