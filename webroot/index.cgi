@@ -81,7 +81,7 @@ my $conf = RouterProxyConfig->New($config_path);
 
 # A little hack to store devices by address. Should be changed to use
 # device name in the future.
-my $devices  = getDevices($conf);
+my $devices = $conf->Devices();
 
 my $logfile                     = $conf->LogFile();
 my $maxlines                    = $conf->MaxLines();
@@ -119,10 +119,10 @@ sub ConfigChooser {
 }
 
 sub getDevice {
-    my $addr = $cgi->param("address");
+    my $device = $cgi->param("device");
 
     # Create a copy of the device data and remove all secrets.
-    my $data = $devices->{$addr};
+    my $data = $devices->{$device};
     $data->{"commands"}    = $conf->DeviceCommands($data->{"name"});
     $data->{"enable_menu"} = $global_enable_menu_commands;
     
@@ -827,20 +827,6 @@ sub getMenuResponse {
   }
 
   return $result;
-}
-
-
-sub getDevices {
-    my $conf = shift;
-
-    my $results = {};
-    my $devices = $conf->Devices();
-
-    foreach my $name (keys %{$devices}) {
-        my $addr = $devices->{$name}->{'address'};
-        $results->{$addr} = $devices->{$name};
-    }
-    return $results;
 }
 
 sub validCommand {

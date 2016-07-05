@@ -11,8 +11,7 @@ function toggle(id) {
 }
 
 function loadCommands(obj) {
-    var address = obj.value;
-    var url = "?method=device&address=" + address;
+    var url = "?method=device&device=" + obj.value;
     
     var req = new XMLHttpRequest();
     req.onreadystatechange = function() {

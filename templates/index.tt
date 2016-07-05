@@ -26,7 +26,7 @@
         <tr class="primary">
 
           [% FOREACH device = group.devices %]
-          <td><input name="host_radio" id="[% device.name %]" type="radio" value="[% device.address %]" onchange="loadCommands(this)" />[% device.name %] ([% device.city %], [% device.state %])</input></td>
+          <td><input name="host_radio" id="[% device.name %]" type="radio" value="[% device.name %]" onchange="loadCommands(this)" />[% device.name %] ([% device.city %], [% device.state %])</input></td>
           [% END %]
         </tr>
       </table>
