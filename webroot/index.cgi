@@ -370,7 +370,7 @@ sub getError {
 
 sub makeHTML2 {
     my $tt = Template->new({ ABSOLUTE => 1 });
-    my $input = "/gnoc/routerproxy/templates/index.tt";
+    my $input = "/gnoc/routerproxy/templates/legacy.tt";
 
     # If $handler is defined outside the makeHTML2 subroutine an error
     # is returned.
@@ -818,7 +818,6 @@ sub getMenuResponse {
   my $device = shift;
 
   if (!$hasJunoscript) {
-
     return ("Junoscript must be installed.", "");
   }
 
@@ -830,23 +829,22 @@ sub getMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
-  if ( !defined( $devices->{$device} ) ) {
-
-      return ("Requested device is not configured.  Please reload the page.", "" );
+  if (!defined $device) {
+      return "Requested device $device is not configured. Please reload the page.";
   }
 
   # use JUNOSCRIPT to issue the command
-  my $name = $devices->{$device}->{'name'};
-  my $hostname = $devices->{$device}->{'address'};
-  my $method = $devices->{$device}->{'method'};
-  my $username = $devices->{$device}->{'username'};
-  my $password = $devices->{$device}->{'password'};
-  my $type = $devices->{$device}->{'type'};
+  my $name = $device->{'name'};
+  my $hostname = $device->{'address'};
+  my $method = $device->{'method'};
+  my $username = $device->{'username'};
+  my $password = $device->{'password'};
+  my $type = $device->{'type'};
 
   $username = encode("utf8", $username);
   $password = encode("utf8", $password);
@@ -966,7 +964,7 @@ sub getMenuResponse {
     $result = "<table class=\"no-border\"><tr class=\"menu-title\"><td>Version For $name</td></tr></table><br />" . showVersion($xml);
   }
 
-  return ($result, "");
+  return $result;
 }
 
 

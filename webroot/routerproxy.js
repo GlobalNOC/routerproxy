@@ -30,6 +30,17 @@ function loadCommands(obj) {
                 opt.value = data.commands[i];
                 select.add(opt);
             }
+
+            // Clear existing menus
+            const menus = document.getElementsByClassName('menu-table');
+            for (let i = 0; i < menus.length; i++) {
+                menus[i].style.display = 'none';
+            }
+
+            if (data.enable_menu == 1) {
+                const ul = document.getElementById(data.type + '_menu');
+                ul.style.display = 'table';
+            }
         }
     }
     req.open("GET", url, true);
