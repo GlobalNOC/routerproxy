@@ -94,28 +94,10 @@ my $global_enable_menu_commands = $conf->ShowDropdown();
 
 my $remoteIP = $ENV{'REMOTE_ADDR'};
 
-my $menuHTML = "";
-my $iosMenu = "";
-my $hdxcMenu = "";
-my $omeMenu = "";
-my $onsMenu = "";
-my $cienaMenu = "";
-
-
-$menuHTML = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a onclick=menuCommand('environment')>Environment</a></li><li><a  onclick=menuCommand('filesystem')>File System</a></li><li><a  onclick=menuCommand('interfaces')>Interfaces</a></li><li><a  onclick=menuCommand('inventory')>Inventory</a></li></ul></li><li><a >Protocols</a><ul><li><a  onclick=menuCommand('bgp')>BGP</a></li><li><a  onclick=menuCommand('ipv6Neighbors')>IPV6 Neighbors</a></li><li><a  onclick=menuCommand('isis')>ISIS Adjacencies</a></li><li><a  onclick=menuCommand('msdp')>MSDP</a></li><li><a  onclick=menuCommand('multicastStatistics')>Multicast Statistics</a></li><li><a  onclick=menuCommand('snmpStatistics')>SNMP Statistics</a></li></ul></li><li><a >System</a><ul><li><a  onclick=menuCommand('bootMessages')>Boot Messages</a></li><li><a  onclick=menuCommand('version')>Version</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$iosMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a>Hardware</a><ul><li><a onclick=iosMenuCommand('interfaces')>Interfaces</a></li><li><a onclick=iosMenuCommand('inventory')>Inventory</a></li></ul></li><li><a>Protocols</a><ul><li><a onclick=iosMenuCommand('bgp')>BGP</a></li><li><a onclick=iosMenuCommand('ipv6Neighbors')>IPv6 Neighbors</a></li><li><a onclick=iosMenuCommand('isis')>ISIS</a></li><li><a onclick=iosMenuCommand('msdp')>MSDP</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$hdxcMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=hdxcMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=hdxcMenuCommand('alarms')>Alarms</a></li><li><a  onclick=hdxcMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$omeMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=omeMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=omeMenuCommand('alarms')>Alarms</a></li><li><a  onclick=omeMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$onsMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=onsMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=onsMenuCommand('alarms')>Alarms</a></li><li><a  onclick=onsMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$cienaMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=cienaMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=cienaMenuCommand('alarms')>Alarms</a></li><li><a onclick=cienaMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
 
 # Prints HTML to STDOUT
 makeHTML2();
+
 
 sub ConfigChooser {
     my $url      = shift;
@@ -138,122 +120,6 @@ sub ConfigChooser {
     }
     return undef;
 }
-
-sub FunctionChooser {
-   my $type = shift;
-   my $enable_menu_commands = shift;
-   my $function = "clearMenu();";
-
-   if (defined($global_enable_menu_commands)) {
-       $enable_menu_commands = $global_enable_menu_commands;
-   }
-   
-   if ($type eq "junos") {
-       if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addJunOS(1);";
-       } else {
-           $function = "addJunOS(0);";
-       }
-   }
-      elsif ($type eq "ios") {
-        $function = "addIOS();";
-      }
-      elsif ($type eq "ios2") {
-        $function = "addIOS2();";
-      }
-      elsif ($type eq "ios6509") {
-        $function = "addIOS6509();";
-      }
-      elsif ($type eq "iosxr") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addIOSXR(1);";
-        }
-        else {
-           $function = "addIOSXR(0);";
-        }
-      }
-      elsif ($type eq "hdxc") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addHDXC(1);";
-        }
-        else {
-           $function = "addHDXC(0);";
-        }
-      }
-      elsif ($type eq "nx-os") {
-        $function = "addNXOS();";
-      }
-      elsif ($type eq "ons15454") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addONS15454(1);";
-        }
-        else {
-           $function = "addONS15454(0);";
-        }
-      }
-      elsif ($type eq "ome") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addOME(1);";
-        }
-        else {
-           $function = "addOME(0);";
-        }
-      }
-      elsif ($type eq "ciena") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addCiena(1);";
-        }
-        else {
-           $function = "addCiena(0);";
-        }
-      }
-      elsif ($type eq "force10") {
-        $function = "addForce10();";
-      }
-      elsif ($type eq "hp") {
-        $function = "addHP();";
-      }elsif($type eq "brocade"){
-        $function = "addBrocade();";
-      }
-     
-      return $function;
-}
-
-sub getMenuCommands {
-   my $type = shift;
-   my $enable_menu_commands = shift;
-   my $menu = "";
-
-   if (defined($global_enable_menu_commands)) {
-      $enable_menu_commands = $global_enable_menu_commands;
-   }
-
-   if (defined($enable_menu_commands) && $enable_menu_commands<=0) {
-      return $menu;
-   }
-   
-   if ($type eq "junos") {
-      $menu = $menuHTML
-   }
-   elsif ($type eq "hdxc") {
-      $menu = $hdxcMenu;
-   }
-   elsif ($type eq "ome") {
-      $menu = $omeMenu;
-   }
-   elsif ($type eq "ons15454") {
-      $menu = $onsMenu;
-   }
-   elsif ($type eq "ciena") {
-      $menu = $cienaMenu;
-   }
-   elsif ($type eq "iosxr") {
-      $menu = $iosMenu;
-   }
-  
-   return $menu;
-}
-
 
 sub getDevice {
     my $addr = $cgi->param("address");
@@ -390,6 +256,7 @@ sub makeHTML2 {
         } else {
             $handler->{$method}->();
         }
+        # HTML has been printed; Return.
         return;
     }
 
@@ -426,14 +293,14 @@ sub getCienaMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
 
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use my TL1 module to issue the command
@@ -477,7 +344,7 @@ sub getCienaMenuResponse {
     $result = retrCrs2(@rows);
   }
 
-  return ($result, "");
+  return $result;
 }
 
 sub getOnsMenuResponse {
@@ -493,14 +360,14 @@ sub getOnsMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
 
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use my TL1 module to issue the command
@@ -544,7 +411,7 @@ sub getOnsMenuResponse {
     $result = retrInv(@rows);
   }
 
-  return ($result, "");
+  return $result;
 }
 
 sub getOmeMenuResponse {
@@ -560,14 +427,14 @@ sub getOmeMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
 
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use my TL1 module to issue the command
@@ -612,7 +479,7 @@ sub getOmeMenuResponse {
     # ons15454$result = retrInv(@rows);
   }
 
-  return ($result, "");
+  return $result;
 }
 
 sub getHdxcMenuResponse {
@@ -628,14 +495,13 @@ sub getHdxcMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
-
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use my TL1 module to issue the command
@@ -688,7 +554,7 @@ sub getHdxcMenuResponse {
     }
   }
 
-  return ($result, "");
+  return $result;
 }
 
 sub getIosMenuResponse {
@@ -697,8 +563,7 @@ sub getIosMenuResponse {
   my $device = shift;
 
   if (!$hasIosXML) {
-
-    return ("IOS XR XML must be installed.", "");
+    return "IOS XR XML must be installed.";
   }
 
   my $result;
@@ -708,14 +573,14 @@ sub getIosMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
 
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use IOS XR XML to issue the command
@@ -809,7 +674,7 @@ sub getIosMenuResponse {
     $result = "<table class=\"no-border\"><tr class=\"menu-title\"><td>IPv6 Neighbors For $name</td></tr></table><br />" . ipv6Neighbors($result);
   }
 
-  return ($result, "");
+  return $result;
 }
 
 sub getMenuResponse {
