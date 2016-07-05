@@ -140,7 +140,7 @@ sub loadXML {
         # Add configured command group.
         my $_command_group = $_device->{'type'} . '-commands';
         $_device->{'command_group'} = [ $_command_group ];
-        $_device->{'exclude_group'} = [ $_command_group ];
+        $_device->{'exclude_group'} = [ 'ex-' . $_command_group ];
         
         # Add configured device to the device hash.
         $self->{'device'}->{ $_device->{'name'} } = $_device;
@@ -163,7 +163,7 @@ sub loadXML {
         }
 
         foreach my $cmd (@{$xml->{$cmd_type}->[0]->{'exclude'}}) {
-            push(@{$self->{'exclude_group'}->{$cmd_type}}, $cmd);
+            push(@{$self->{'command_group'}->{'ex-' . $cmd_type}}, $cmd);
         }
     }
     
@@ -240,22 +240,6 @@ sub CommandsInGroup {
     }
 }
 
-=head2 CommandsExcludedFromGroup
-
-Returns a list of commands not in the command group $name.
-
-=cut
-sub CommandsExcludedFromGroup {
-    my $self = shift;
-    my $name = shift;
-
-    if (defined $self->{'exclude_group'}->{$name}) {
-        return \@{$self->{'exclude_group'}->{$name}};
-    } else {
-        return [];
-    }
-}
-
 =head2 Device
 
 Returns the device named $name.
@@ -321,7 +305,7 @@ sub DeviceExcludeCommands {
     my $groups = $self->{'device'}->{$name}->{'exclude_group'};
 
     foreach my $group (@{$groups}) {
-        foreach my $command (@{$self->{'exclude_group'}->{$group}}) {
+        foreach my $command (@{$self->{'command_group'}->{$group}}) {
             push(@{$result}, $command);
         }
     }

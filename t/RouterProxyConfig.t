@@ -6,7 +6,7 @@ use FindBin;
 use RouterProxyConfig;
 use Test::More tests => 25;
 
-my $path   = "$FindBin::Bin/conf/test.conf";
+my $path   = "$FindBin::Bin/conf/test.yaml";
 my $config = RouterProxyConfig->New($path);
 
 my $log_file = $config->LogFile();
@@ -66,9 +66,13 @@ my $commands_in_group = $config->CommandsInGroup("brocade-commands");
 my $commands_in_group_count = @{$commands_in_group};
 ok($commands_in_group_count == 7, "Got $commands_in_group_count commands.");
 
-my $commands_not_in_group = $config->CommandsExcludedFromGroup("brocade-commands");
-my $commands_not_in_group_count = @{$commands_not_in_group};
-ok($commands_not_in_group_count == 1, "Got $commands_not_in_group_count commands.");
+#my $commands_not_in_group = $config->CommandsExcludedFromGroup("brocade-commands");
+#my $commands_not_in_group_count = @{$commands_not_in_group};
+#ok($commands_not_in_group_count == 1, "Got $commands_not_in_group_count commands.");
+
+my $commands_not_for_device = $config->DeviceExcludeCommands("some switch");
+my $commands_not_for_device_count = @{$commands_not_for_device};
+ok($commands_not_for_device_count == 1, "Got $commands_not_for_device excluded commands for some switch.");
 
 my $redacts = $config->Redacts();
 my $redact_count = @{$redacts};

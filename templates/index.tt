@@ -164,6 +164,7 @@
     <br/>
     
     <div class="result" id="result">
+      <table class="title"><tr class="menu-title"><td id="result_title" colspan="3"></td></tr></table>
       <pre><code class="result_pre" id="result_pre">
       </code></pre>
     </div>

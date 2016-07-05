@@ -70,8 +70,9 @@ function selectedCommand() {
 }
 
 function submitCommand() {
+    const d = selectedDevice();
     let url = '?method=submit';
-    url = url + '&device=' + selectedDevice();
+    url = url + '&device='  + d;
     url = url + '&command=' + selectedCommand();
     url = url + '&menu=0';
 
@@ -87,6 +88,9 @@ function submitCommand() {
             const wrapper = document.getElementById("result");
             wrapper.style.display = 'block';
             
+            const title = document.getElementById("result_title");
+            title.innerHTML = 'Response from: ' + d;
+
             const pre = document.getElementById("result_pre");
             pre.innerHTML = req.responseText;
 

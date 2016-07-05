@@ -875,13 +875,13 @@ sub validCommand {
 
     # First check to see if this command matches one of the deliberately
     # exluded ones.
-    foreach my $excludeCommand (@$excludeCommands) {
+    foreach my $excludeCommand (@{$excludeCommands}) {
         if ($command =~ /$excludeCommand/) {
             return 0;
         }
     }
 
-    foreach my $validCommand (@$validCommands) {
+    foreach my $validCommand (@{$validCommands}) {
         # For layer2/3, accept anything which has the prefix of a valid
         # command.
         if ($type eq "ciena" || $type eq "hdxc" || $type eq "ons15454" || $type eq "ome") {
