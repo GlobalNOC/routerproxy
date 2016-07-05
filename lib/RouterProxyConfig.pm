@@ -100,7 +100,7 @@ sub loadXML {
     } else {
         $l1_group->{'display'} = 1;
     }
-    $self->{'device_group'}->{'1'} = $l1_group;
+    $self->{'device_group'}->{$xml->{'layer1-title'}->[0]} = $l1_group;
 
     my $l2_group = { name        => $xml->{'layer2-title'}->[0],
                      display     => $xml->{'layer2-collapse'}->[0],
@@ -111,7 +111,7 @@ sub loadXML {
     } else {
         $l2_group->{'display'} = 1;
     }
-    $self->{'device_group'}->{'2'} = $l2_group;
+    $self->{'device_group'}->{$xml->{'layer2-title'}->[0]} = $l2_group;
 
     my $l3_group = { name        => $xml->{'layer3-title'}->[0],
                      display     => $xml->{'layer3-collapse'}->[0],
@@ -122,7 +122,7 @@ sub loadXML {
     } else {
         $l3_group->{'display'} = 1;
     }
-    $self->{'device_group'}->{'3'} = $l3_group;
+    $self->{'device_group'}->{$xml->{'layer3-title'}->[0]} = $l3_group;
 
 
     foreach my $device (@{$xml->{'device'}}) {
@@ -147,11 +147,14 @@ sub loadXML {
 
         # Add configured device to the proper device group.
         if ($_device->{'device_group'} == 1) {
-            push(@{$self->{'device_group'}->{'1'}->{'devices'}}, $_device);
+            $_device->{'device_group'} = $xml->{'layer1-title'}->[0];
+            push(@{$self->{'device_group'}->{$xml->{'layer1-title'}->[0]}->{'devices'}}, $_device);
         } elsif ($_device->{'device_group'} == 2) {
-            push(@{$self->{'device_group'}->{'2'}->{'devices'}}, $_device);
+            $_device->{'device_group'} = $xml->{'layer2-title'}->[0];
+            push(@{$self->{'device_group'}->{$xml->{'layer2-title'}->[0]}->{'devices'}}, $_device);
         } elsif ($_device->{'device_group'} == 3) {
-            push(@{$self->{'device_group'}->{'3'}->{'devices'}}, $_device);
+            $_device->{'device_group'} = $xml->{'layer3-title'}->[0];
+            push(@{$self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'devices'}}, $_device);
         } else {
             warn "Device $_device->{'name'} was not added to a device group.";
         }
@@ -193,9 +196,10 @@ sub loadYAML {
     $self->{'command_group'} = $yaml->{'command_group'};
     $self->{'exclude_group'} = $yaml->{'exclude_group'};
 
-    foreach my $name (keys %{$yaml->{'device_group'}}) {
-        $self->{'device_group'}->{$name} = $yaml->{'device_group'}->{$name};
-        $self->{'device_group'}->{$name}->{'devices'} = [];
+    $self->{'device_group'} = {};
+    foreach my $group (@{$yaml->{'device_group'}}) {
+        $self->{'device_group'}->{$group->{'name'}} = $group;
+        $self->{'device_group'}->{$group->{'name'}}->{'devices'} = [];
     }
 
     $self->{'device'} = {};

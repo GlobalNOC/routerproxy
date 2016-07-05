@@ -4,7 +4,7 @@ general:
   max_timeout: 60
   max_rate:    5
   redact:
-    - "(?&#60;&#61;\+)\d+"
+    - "(?<=\+)\d+"
 
 frontend:
   dropdown:     0
@@ -15,16 +15,13 @@ frontend:
   help:         "This is a help message."
 
 device_group:
-  1:
-    name: "Optical Gear"
+  - name: "Optical Gear"
     display: 1
     description: ""
-  2:
-    name: "Core Switches"
+  - name: "Core Switches"
     display: 1
     description: ""
-  3:
-    name: "Core Routers"
+  - name: "Core Routers"
     display: 1
     description: ""
 
@@ -33,7 +30,7 @@ device:
     address:      "127.0.0.1"
     city:         "Indianapolis"
     # Maps to a device group name
-    device_group: "2"
+    device_group: "Core Switches"
     method:       "ssh"
     password:     "some password"
     state:        "IN"

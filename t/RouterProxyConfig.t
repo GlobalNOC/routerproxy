@@ -4,7 +4,7 @@ use warnings;
 use Data::Dumper;
 use FindBin;
 use RouterProxyConfig;
-use Test::More tests => 25;
+use Test::More tests => 26;
 
 my $path   = "$FindBin::Bin/conf/test.yaml";
 my $config = RouterProxyConfig->New($path);
@@ -52,7 +52,7 @@ ok($device->{'name'} eq "some switch", "Got expected device name.");
 ok($device->{'username'} eq "some username", "Got expected device username.");
 ok($device->{'state'} eq "IN", "Got expected device state.");
 ok($device->{'city'} eq "Indianapolis", "Got expected device city.");
-ok($device->{'device_group'} eq "2", "Got expected device layer.");
+ok($device->{'device_group'} eq "Core Switches", "Got expected device group.");
 ok($device->{'password'} eq "some password", "Got expected device password.");
 ok($device->{'address'} eq "127.0.0.1", "Got expected device address.");
 ok($device->{'method'} eq "ssh", "Got expected device method.");
@@ -77,3 +77,4 @@ ok($commands_not_for_device_count == 1, "Got $commands_not_for_device excluded c
 my $redacts = $config->Redacts();
 my $redact_count = @{$redacts};
 ok ($redact_count == 1, "Got $redact_count redact regexs.");
+ok ($redacts->[0] eq '(?<=\+)\d+', "Got expected redact statement.");
