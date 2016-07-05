@@ -1,166 +1,8 @@
 
 <!DOCTYPE html>
 <html>
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css"/>
-  <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
-
+  <link rel='stylesheet' type='text/css' href='style.css'>
   <script type="text/javascript" src="routerproxy.js"></script>
-
-  <style>
-    .routerproxy {
-    padding:0px;
-    margin:0px;
-    display: flex;
-    min-height: 100vh;
-    flex-direction: column;
-    font-size: 1.4em;
-    }
-
-    .header {
-    flex: none;
-    text-align: center;
-    color: #7A1705;
-    background-color: #fff;
-    }
-
-    .body {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    background-color: #ffffff;
-    }
-
-    .result {
-    flex: none;
-    text-align: left;
-    margin: 10px;
-    }
-
-    .result_pre {
-    overflow-x: scroll;
-    }
-
-    .footer {
-    flex: none;
-    text-align: center;
-    color: #4b4b4b;
-    background-color: #ffffff;
-    }
-
-    .content {
-    flex: 5;
-    }
-
-    .aside1 {
-    flex: 1;
-    order: -1;
-    background-color: #fff;
-    }
-
-    .aside2 {
-    flex: 1;
-    background-color: #fff;
-    }
-
-    .host_group {
-    margin: 10px;
-    display: flex;
-    flex-flow: row wrap;
-    background-color: #ffffff;
-    box-shadow: 3px 3px 5px #bbb;
-    }
-
-    .host_group_header {
-    flex: 1 100%;
-    text-align: center;
-    color: #EDE9E6;
-    background-color: #7A1705;
-    }
-
-    .host {
-    flex: 1;
-    margin: 0px 5px;
-    min-width: 150px;
-    }
-
-    .host_command {
-    display: flex;
-    margin: 10px;
-    flex-direction: column;
-    }
-
-    @media all and (min-width: 800px) {
-    .body {
-    flex-flow: row wrap;
-    }
-
-    .host_command {
-    flex-flow: row wrap;
-    }
-
-    .host_command_select {
-    flex: 2;
-    margin: 0px 5px;
-    }
-
-    .host_command_text {
-    flex: 5;
-    margin: 0px 5px;
-    }
-
-    .host_command_button {
-    flex: 1;
-    margin: 0px 5px;
-    }
-    }
-
-    .menu_table {
-    padding: 14px;
-    }
-    
-    .dropbtn {
-    background-color: #7A1705;
-    color: white;
-    padding: 16px;
-    font-size: 16px;
-    border: none;
-    cursor: pointer;
-    }
-    
-    .dropdown {
-    position: relative;
-    display: inline-block;
-    }
-
-    .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    padding: 12px 0px 0ox 0px;
-    z-index: 1;
-    }
-
-    .dropdown-content a {
-    cursor: pointer;
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    }
-
-    .dropdown-content a:hover {background-color: #f1f1f1}
-    
-    .dropdown:hover .dropdown-content {
-    display: block;
-    }
-
-    .dropdown:hover .dropbtn {
-    background-color: #7A1605;
-    }
-    
-  </style>
 
   <head>
     <meta charset="UTF-8">
@@ -168,158 +10,172 @@
   </head>
 
   <body class="routerproxy">
-    <header class="header">
-      <br/>
-      <h1>[% network_name %] Router Proxy</h1>
-      A service of the <a href="[% noc_site %]">[% noc_name %]</a>
-    </header>
-    <br/>
 
-    <div class="body">
-      <div class="content">
+    <div class="logo">[% network_name %] Router Proxy</div>
+    
+    <center>
+      <h2>A service of the <a href="[% noc_site %]">[% noc_name %]</a></h2>
+    </center>
 
-        [% FOREACH group IN groups %]
-        <div class="host_group">
-          <div class="host_group_header">[% group.name %]</div>
-          
+    [% FOREACH group IN groups %]
+    <div class="devices">
+      <table class="title">
+        <tr class="menu-title" onclick="toggle('[% group.name %]');"><td colspan="3">[% group.name %]</td></tr>
+      </table>
+      <table id='[% group.name %]' style='display: table'>
+        <tr class="primary">
+
           [% FOREACH device = group.devices %]
-          <div class="host">
-            <input type="radio" name="host_radio" id="[% device.name %]" value="[% device.address %]" onchange="loadCommands(this)">
-            [% device.name %] ([% device.city %], [% device.state %])</input>
-          </div>
+          <td><input name="host_radio" id="[% device.name %]" type="radio" value="[% device.address %]" onchange="loadCommands(this)" />[% device.name %] ([% device.city %], [% device.state %])</input></td>
           [% END %]
-          
-        </div>
-        [% END %]
+        </tr>
+      </table>
+    </div><br/>
+    [% END %]
 
+    <div class="menu-commands" id="menu-commands">
+      <center>
         <!-- BEGIN COMMAND MENUS -->
-        <center class="menu_table" id="junos_menu">
-          <div class="dropdown"><a class="dropbtn">Hardware</a>
-            <div class="dropdown-content">
-              <a onclick=submitMenuCommand('environment')>Environment</a>
-              <a onclick=submitMenuCommand('filesystem')>File System</a>
-              <a onclick=submitMenuCommand('interfaces')>Interfaces</a>
-              <a onclick=submitMenuCommand('inventory')>Inventory</a>
-            </div>
-          </div>
-          <div class="dropdown"><a class="dropbtn">Protocols</a>
-            <div class="dropdown-content">
-              <a onclick=submitMenuCommand('bgp')>BGP</a>
-              <a onclick=submitMenuCommand('ipv6Neighbors')>IPV6 Neighbors</a>
-              <a onclick=submitMenuCommand('isis')>ISIS Adjacencies</a>
-              <a onclick=submitMenuCommand('msdp')>MSDP</a>
-              <a onclick=submitMenuCommand('multicastStatistics')>Multicast Statistics</a>
-              <a onclick=submitMenuCommand('snmpStatistics')>SNMP Statistics</a>
-            </div>
-          </div>
-          <div class="dropdown"><a class="dropbtn">System</a>
-            <div class="dropdown-content">
-              <a onclick=submitMenuCommand('bootMessages')>Boot Messages</a>
-              <a onclick=submitMenuCommand('version')>Version</a>
-            </div>
-          </div>
-        </center>
+        <table class='menu-table' id='junos_menu'>
+          <tr><td><center><ul>
+                  <li><a>Hardware</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('environment')>Environment</a></li>
+                      <li><a onclick=submitMenuCommand('filesystem')>File System</a></li>
+                      <li><a onclick=submitMenuCommand('interfaces')>Interfaces</a></li>
+                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                    </ul>
+                  </li>
+                  <li><a>Protocols</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('bgp')>BGP</a></li>
+                      <li><a onclick=submitMenuCommand('ipv6Neighbors')>IPV6 Neighbors</a></li>
+                      <li><a onclick=submitMenuCommand('isis')>ISIS Adjacencies</a></li>
+                      <li><a onclick=submitMenuCommand('msdp')>MSDP</a></li>
+                      <li><a onclick=submitMenuCommand('multicastStatistics')>Multicast Statistics</a></li>
+                      <li><a onclick=submitMenuCommand('snmpStatistics')>SNMP Statistics</a></li>
+                    </ul>
+                  </li>
+                  <li><a>System</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('bootMessages')>Boot Messages</a></li>
+                      <li><a onclick=submitMenuCommand('version')>Version</a></li>
+                    </ul>
+                  </li>
+          </ul></center></td></tr>
+        </table>
 
-        <!--
-        <center class="menu_table" id="ios_menu">
-          <div class="dropdown"><a class="dropbtn">Hardware</a>
-            <div class="dropdown-content">
-              <a onclick=submitMenuCommand('interfaces')>Interfaces</a>
-              <a onclick=submitMenuCommand('inventory')>Inventory</a>
-            </div>
-          </div>
-          <div class="dropdown"><a class="dropbtn">Protocols</a>
-            <div class="dropdown-content">
-              <a onclick=submitMenuCommand('bgp')>BGP</a>
-              <a onclick=submitMenuCommand('ipv6Neighbors')>IPv6 Neighbors</a>
-              <a onclick=submitMenuCommand('isis')>ISIS</a>
-              <a onclick=submitMenuCommand('msdp')>MSDP</a>
-            </div>
-          </div>
-        </center>
+        <table class='menu-table' id='ios_menu'>
+          <tr><td><center><ul>
+                  <li><a>Hardware</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('interfaces')>Interfaces</a></li>
+                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                    </ul>
+                  </li>
+                  <li><a>Protocols</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('bgp')>BGP</a></li>
+                      <li><a onclick=submitMenuCommand('ipv6Neighbors')>IPv6 Neighbors</a></li>
+                      <li><a onclick=submitMenuCommand('isis')>ISIS</a></li>
+                      <li><a onclick=submitMenuCommand('msdp')>MSDP</a></li>
+                    </ul>
+                  </li>
+          </ul></center></td></tr>
+        </table>
 
-        <center class="menu_table" id="hdxc_menu">
-            <div class="dropdown"><a class="dropbtn">Hardware</a>
-              <div class="dropdown-content">
-                <a onclick=submitMenuCommand('inventory')>Inventory</a>
-              </div>
-            </div>
-            <div class="dropdown"><a class="dropbtn">System</a>
-              <div class="dropdown-content">
-                <a onclick=submitMenuCommand('alarms')>Alarms</a>
-                <a onclick=submitMenuCommand('circuits')>Circuits</a>
-              </div>
-            </div>
-        </center>
+        <table class='menu-table' id='hdxc_menu'>
+          <tr><td><center><ul>
+                  <li><a>Hardware</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                    </ul>
+                  </li>
+                  <li><a>System</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
+                      <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                    </ul>
+                  </li>
+          </ul></center></td></tr>
+        </table>
 
-        <center class="menu_table" id="ome_menu">
-            <div class="dropdown"><a class="dropbtn">Hardware</a>
-              <div class="dropdown-content">
-                <a onclick=submitMenuCommand('inventory')>Inventory</a>
-              </div>
-            </div>
-            <div class="dropdown"><a class="dropbtn">System</a>
-              <div class="dropdown-content">
-                <a onclick=submitMenuCommand('alarms')>Alarms</a>
-                <a onclick=submitMenuCommand('circuits')>Circuits</a>
-              </div>
-            </div>
-        </center>
+        <table class='menu-table' id='ome_menu'>
+          <tr><td><center><ul>
+                  <li><a>Hardware</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                    </ul>
+                  </li>
+                  <li><a>System</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
+                      <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                    </ul>
+                  </li>
+          </ul></center></td></tr>
+        </table>
 
-        <center class="menu_table" id="ons_menu">
-            <div class="dropdown"><a class="dropbtn">Hardware</a>
-              <div class="dropdown-content">
-                <a onclick=submitMenuCommand('inventory')>Inventory</a>
-              </div>
-            </div>
-            <div class="dropdown"><a class="dropbtn">System</a>
-              <div class="dropdown-content">
-                <a onclick=submitMenuCommand('alarms')>Alarms</a>
-                <a onclick=submitMenuCommand('circuits')>Circuits</a>
-              </div>
-            </div>
-        </center>
+        <table class='menu-table' id='ons_menu'>
+          <tr><td><center><ul>
+                  <li><a>Hardware</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                    </ul>
+                  </li>
+                  <li><a>System</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
+                      <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                    </ul>
+                  </li>
+          </ul></center></td></tr>
+        </table>
 
-        <center class="menu_table" id="ciena_menu">
-          <div class="dropdown"><a class="dropbtn">Hardware</a>
-            <div class="dropdown-content">
-              <a onclick=submitMenuCommand('inventory')>Inventory</a>
-            </div>
-          </div>
-          <div class="dropdown"><a class="dropbtn">System</a>
-            <div class="dropdown-content">
-              <a onclick=submitMenuCommand('alarms')>Alarms</a>
-              <a onclick=submitMenuCommand('circuits')>Circuits</a>
-            </div>
-          </div>
-        </center>
-        -->
+        <table class='menu-table' id='ciena_menu'>
+          <tr><td><center><ul>
+                  <li><a>Hardware</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                    </ul>
+                  </li>
+                  <li><a>System</a>
+                    <ul>
+                      <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
+                      <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                    </ul>
+                  </li>
+          </ul></center></td></tr>
+        </table>
         <!-- END COMMAND MENUS -->
+      </center>
+    </div><br/>
 
-        <div class="host_command">
-          <select class="host_command_select" id="host_command_select"></select>
-          <input class="host_command_text" id="host_command_text" type="text"></input>
-          <input class="host_command_button" type="button" value="Submit" onclick="submitCommand(this)"></input>
-        </div>
+    <center>
+      <h4></h4>
+    </center>
 
-        <div class="result" id="result">
-          <pre><code class="result_pre" id="result_pre">
-          </code></pre>
-        </div>
-
-        <div class="result" id="menu_result">
-        </div>
-      </div>
-
-      <div class="aside1"></div>
-      <div class="aside2"></div>
+    <div class="host_command">
+      Command: <select class="host_command_select" id="host_command_select"></select>
+      <input class="host_command_text" id="host_command_text" type="text"></input>
+      <input class="host_command_button" type="button" value="Submit" onclick="submitCommand(this)"></input>
+    </div>
+    <br/>
+    <br/>
+    
+    <div class="result" id="result">
+      <pre><code class="result_pre" id="result_pre">
+      </code></pre>
+    </div>
+    
+    <div class="result" id="menu_result">
     </div>
 
-    <footer class="footer">
-      Developed by Global Research NOC Systems Engineering<br/>
-      Copyright 2015, The Trustees of Indiana University<br/>
-      ~
-    </footer>
-  </body>
+    <center>
+      <hr width="50%" />
+      <h4>Developed by Global Research NOC Systems Engineering<br />
+        Copyright 2010, The Trustees of Indiana University</h4>
+    </center>
 
+  </body>
 </html>

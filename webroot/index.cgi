@@ -79,12 +79,9 @@ unless (defined($config_path) && -e $config_path) {
 
 my $conf = RouterProxyConfig->New($config_path);
 
+# A little hack to store devices by address. Should be changed to use
+# device name in the future.
 my $devices  = getDevices($conf);
-my @routers  = ();
-my @switches = ();
-my @opticals = ();
-
-my @all_devices = ( @routers, @switches, @opticals );
 
 my $logfile                     = $conf->LogFile();
 my $maxlines                    = $conf->MaxLines();
@@ -236,7 +233,7 @@ sub getError {
 
 sub makeHTML2 {
     my $tt = Template->new({ ABSOLUTE => 1 });
-    my $input = "/gnoc/routerproxy/templates/legacy.tt";
+    my $input = "/gnoc/routerproxy/templates/index.tt";
 
     # If $handler is defined outside the makeHTML2 subroutine an error
     # is returned.
