@@ -44,7 +44,7 @@ my $devices_count = keys %{$devices};
 ok($devices_count == 1, "Got $devices_count devices.");
 
 my $device_groups = $config->DeviceGroups();
-my $device_groups_count = keys %{$device_groups};
+my $device_groups_count = @{$device_groups};
 ok($device_groups_count == 3, "Got $device_groups_count device groups.");
 
 my $device = $config->Device("some switch");

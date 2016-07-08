@@ -15,7 +15,7 @@ function loadCommands(obj) {
     
     var req = new XMLHttpRequest();
     req.onreadystatechange = function() {
-        if (req.readyState == 4) { // && req.status == 200) {
+        if (req.readyState == 4 && req.status == 200) {
             var select = document.getElementById("host_command_select");
             var i;
             for (i = select.options.length -1; i >= 0; i--) {
@@ -38,7 +38,9 @@ function loadCommands(obj) {
 
             if (data.enable_menu == 1) {
                 const ul = document.getElementById(data.type + '_menu');
-                ul.style.display = 'table';
+                if (ul != null) { // Not all device types have a menu.
+                    ul.style.display = 'table';
+                }
             }
         }
     }
@@ -83,7 +85,7 @@ function submitCommand() {
     const req = new XMLHttpRequest();
     req.onreadystatechange = function() {
         // TODO Fix http response status code.
-        if (req.readyState == 4) { // && req.status == 200) {
+        if (req.readyState == 4 && req.status == 200) {
             const wrapper = document.getElementById("result");
             wrapper.style.display = 'block';
             
@@ -112,7 +114,7 @@ function submitMenuCommand(command) {
     const req = new XMLHttpRequest();
     req.onreadystatechange = function() {
         // TODO Fix http response status code.
-        if (req.readyState == 4) { // && req.status == 200) {
+        if (req.readyState == 4 && req.status == 200) {
             const wrapper = document.getElementById("result");
             wrapper.style.display = 'none';
 

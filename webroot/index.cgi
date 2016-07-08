@@ -125,14 +125,15 @@ sub getDevice {
     my $data = $devices->{$device};
     $data->{"commands"}    = $conf->DeviceCommands($data->{"name"});
     $data->{"enable_menu"} = $global_enable_menu_commands;
-    
+
     delete $data->{"username"};
     delete $data->{"password"};
     delete $data->{"method"};
     delete $data->{"command_group"};
     delete $data->{"exclude_group"};
 
-    print $cgi->header(type => "text/html");
+    print $cgi->header(-type => "text/html",
+                       -status => "200" );
     print encode_json($data);
 }
 
@@ -144,7 +145,8 @@ sub getResponses {
     
     my $device = $devices->{$address};
     if (!defined $device) {
-        print $cgi->header(type => "text/html");
+        print $cgi->header(-type => "text/html",
+                           -status => "200" );
         print "Requested device is not configured.  Please reload the page.";
         return;
     }
@@ -170,7 +172,8 @@ sub getResponses {
         $data = getResponse($command, $arguments, $device);
     }
 
-    print $cgi->header(type => "text/html");
+    print $cgi->header(-type => "text/html",
+                       -status => "200" );
     print "$data";
 }
 
@@ -227,8 +230,9 @@ sub getResponse {
 }
 
 sub getError {
-    print $cgi->header(type => "text/html");
-    print "hello";
+    print $cgi->header(-type => "text/html",
+                       -status => "500" );
+    print "An unexpected error occured.";
 }
 
 sub makeHTML2 {
@@ -257,23 +261,17 @@ sub makeHTML2 {
         return;
     }
 
-    # Convert hash into array. Config shall be modified to use an array.
-    my $device_groups = $conf->DeviceGroups();
-    my $groups = [];
-    foreach my $name (keys %{$device_groups}) {
-        push(@{$groups}, $device_groups->{$name});
-    }
-
     my $html = "";
     my $vars = { network_name => $conf->NetworkName(),
                  noc_mail     => $conf->NOCMail(),
                  noc_name     => $conf->NOCName(),
                  noc_site     => $conf->NOCSite(),
-                 groups       => $groups
+                 groups       => $conf->DeviceGroups()
                };
     $tt->process($input, $vars, \$html);
 
-    print $cgi->header(type => "text/html");
+    print $cgi->header(-type => "text/html",
+                       -status => "200" );
     print $html;
 }
 

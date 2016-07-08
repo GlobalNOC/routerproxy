@@ -101,6 +101,7 @@ sub loadXML {
         $l1_group->{'display'} = 1;
     }
     $self->{'device_group'}->{$xml->{'layer1-title'}->[0]} = $l1_group;
+    $self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'position'} = 0;
 
     my $l2_group = { name        => $xml->{'layer2-title'}->[0],
                      display     => $xml->{'layer2-collapse'}->[0],
@@ -112,6 +113,7 @@ sub loadXML {
         $l2_group->{'display'} = 1;
     }
     $self->{'device_group'}->{$xml->{'layer2-title'}->[0]} = $l2_group;
+    $self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'position'} = 1;
 
     my $l3_group = { name        => $xml->{'layer3-title'}->[0],
                      display     => $xml->{'layer3-collapse'}->[0],
@@ -123,7 +125,7 @@ sub loadXML {
         $l3_group->{'display'} = 1;
     }
     $self->{'device_group'}->{$xml->{'layer3-title'}->[0]} = $l3_group;
-
+    $self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'position'} = 2;
 
     foreach my $device (@{$xml->{'device'}}) {
         my $_device = {};
@@ -196,10 +198,13 @@ sub loadYAML {
     $self->{'command_group'} = $yaml->{'command_group'};
     $self->{'exclude_group'} = $yaml->{'exclude_group'};
 
+    my $position = 0;
     $self->{'device_group'} = {};
     foreach my $group (@{$yaml->{'device_group'}}) {
         $self->{'device_group'}->{$group->{'name'}} = $group;
         $self->{'device_group'}->{$group->{'name'}}->{'devices'} = [];
+        $self->{'device_group'}->{$group->{'name'}}->{'position'} = $position;
+        $position = $position + 1;
     }
 
     $self->{'device'} = {};
@@ -268,12 +273,17 @@ sub Devices {
 
 =head2 DeviceGroups
 
-Returns a copy of the device groups in this config as a hash.
+Returns an array of the device groups in this config.
 
 =cut
 sub DeviceGroups {
     my $self = shift;
-    return \%{$self->{'device_group'}};
+
+    my $result = [];
+    foreach my $name (sort { $self->{'device_group'}->{$a}->{'position'} cmp $self->{'device_group'}->{$b}->{'position'} } keys %{$self->{'device_group'}}) {
+        push(@{$result}, $self->{'device_group'}->{$name});
+    }
+    return $result;
 }
 
 =head2 DeviceCommands
