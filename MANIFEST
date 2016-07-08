@@ -1,6 +1,6 @@
 Changes.md
 conf/apache/routerproxy.conf
-conf/config.xml
+conf/config.yaml
 conf/routerproxy_mappings.xml
 grnoc-routerproxy.spec
 lib/Commands.pm

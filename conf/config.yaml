@@ -1,0 +1,295 @@
+---
+command_group:
+  brocade-commands: []
+  ciena-commands:
+    - RTRV-ALM-ALL:::1;
+    - RTRV-CRS:::1;
+    - RTRV-EQPT::ALL:1;
+  ex-ciena-commands:
+    - this command won't be allowed
+  ex-force10-commands:
+    - this command won't be allowed
+  ex-hdxc-commands:
+    - this command won't be allowed
+  ex-hp-commands:
+    - this command won't be allowed
+  ex-ios-commands:
+    - this command won't be allowed
+  ex-ios2-commands:
+    - this command won't be allowed
+  ex-ios6509-commands:
+    - this command won't be allowed
+  ex-iosxr-commands:
+    - this command won't be allowed
+  ex-junos-commands:
+    - this command won't be allowed
+  ex-ome-commands:
+    - this command won't be allowed
+  ex-ons15454-commands:
+    - this command won't be allowed
+  force10-commands:
+    - mtrace
+    - ping
+    - show arp
+    - show environment
+    - show interface
+    - show inventory
+    - show ip interface
+    - show mac-address-table
+    - show spanning-tree pvst vlan
+    - show vlan
+    - show version
+    - traceroute
+  hdxc-commands:
+    - RTRV-ALM-ALL:::1::;
+    - RTRV-CRS-ALL:::1;
+    - RTRV-INVENTORY:::1;
+    - RTRV-IP:::1;
+  hp-commands:
+    - ping repetitions 5
+    - show interfaces
+    - show ip
+    - show system-information
+    - show version
+    - show vlans
+    - traceroute
+  ios-commands:
+    - mtrace
+    - ping
+    - show bgp
+    - show controller
+    - show environment
+    - show interface
+    - show ip
+    - show ipv6
+    - show route-map
+    - show version
+    - traceroute
+  ios2-commands:
+    - mtrace
+    - ping
+    - show interfaces
+    - show ip
+    - show mac-address-table
+    - show version
+    - show vlan
+    - traceroute
+  ios6509-commands:
+    - mtrace
+    - ping
+    - show bgp
+    - show controller
+    - show environment
+    - show interface
+    - show mac-address-table
+    - show power
+    - show proc
+    - show spanning-tree
+    - show version
+    - trace
+  iosxr-commands:
+    - mtrace
+    - ping
+    - show bgp
+    - show interface
+    - show mrib
+    - show msdp
+    - show pim
+    - show route
+    - show version
+    - traceroute
+  junos-commands:
+    - mtrace
+    - ping count 5
+    - show bgp
+    - show chassis
+    - show interface
+    - show ipv6
+    - show msdp
+    - show multicast
+    - show pfe
+    - show pim
+    - show rip
+    - show ripng
+    - show route
+    - show version
+    - traceroute
+  ome-commands:
+    - RTRV-ALM-ALL:::1::;
+    - RTRV-CRS-ALL:::1;
+    - RTRV-INVENTORY:::1;
+    - RTRV-IP:::1;
+  ons15454-commands:
+    - RTRV-ALM-ALL:::1;
+    - RTRV-CRS::ALL:1;
+    - RTRV-FAC::ALL:1;
+    - RTRV-INV::ALL:1;
+    - RTRV-NE-GEN:::1;
+device:
+  - address: juniper.router.com
+    city: juniper.router.com
+    command_group:
+      - junos-commands
+    device_group: juniper.router.com
+    exclude_group:
+      - ex-junos-commands
+    method: telnet
+    name: Juniper Router
+    password: pass
+    state: ST
+    type: junos
+    username: user
+  - address: cisco.router.com
+    city: cisco.router.com
+    command_group:
+      - ios-commands
+    device_group: cisco.router.com
+    exclude_group:
+      - ex-ios-commands
+    method: ssh
+    name: Cisco Router
+    password: pass
+    state: ST
+    type: ios
+    username: user
+  - address: cisco6509.router.com
+    city: cisco6509.router.com
+    command_group:
+      - ios6509-commands
+    device_group: cisco6509.router.com
+    exclude_group:
+      - ex-ios6509-commands
+    method: ssh
+    name: Cisco 6509
+    password: pass
+    state: ST
+    type: ios6509
+    username: user
+  - address: iosxr.router.com
+    city: iosxr.router.com
+    command_group:
+      - iosxr-commands
+    device_group: iosxr.router.com
+    exclude_group:
+      - ex-iosxr-commands
+    method: ssh
+    name: Cisco CRS
+    password: pass
+    state: ST
+    type: iosxr
+    username: user
+  - address: hdxc.router.com
+    city: hdxc.router.com
+    command_group:
+      - hdxc-commands
+    device_group: hdxc.router.com
+    exclude_group:
+      - ex-hdxc-commands
+    method: ~
+    name: Nortel HDXc
+    password: pass
+    state: ST
+    type: hdxc
+    username: user
+  - address: ome.router.com
+    city: ome.router.com
+    command_group:
+      - ome-commands
+    device_group: ome.router.com
+    exclude_group:
+      - ex-ome-commands
+    method: ~
+    name: Nortel OME
+    password: pass
+    state: ST
+    type: ome
+    username: user
+  - address: ons15454.router.com
+    city: ons15454.router.com
+    command_group:
+      - ons15454-commands
+    device_group: ons15454.router.com
+    exclude_group:
+      - ex-ons15454-commands
+    method: ~
+    name: Cisco ONS 15454
+    password: pass
+    state: ST
+    type: ons15454
+    username: user
+  - address: ciena.router.com
+    city: ciena.router.com
+    command_group:
+      - ciena-commands
+    device_group: ciena.router.com
+    exclude_group:
+      - ex-ciena-commands
+    method: ~
+    name: Ciena Core Director
+    password: pass
+    state: ST
+    type: ciena
+    username: user
+  - address: hp.router.com
+    city: hp.router.com
+    command_group:
+      - hp-commands
+    device_group: hp.router.com
+    exclude_group:
+      - ex-hp-commands
+    method: ssh
+    name: HP ProCurve
+    password: pass
+    state: ST
+    type: hp
+    username: user
+  - address: force10.router.com
+    city: force10.router.com
+    command_group:
+      - force10-commands
+    device_group: force10.router.com
+    exclude_group:
+      - ex-force10-commands
+    method: ssh
+    name: Force 10
+    password: pass
+    state: ST
+    type: force10
+    username: user
+  - address: nx-os.router.com
+    city: nx-os.router.com
+    command_group:
+      - nx-os-commands
+    device_group: nx-os.router.com
+    exclude_group:
+      - ex-nx-os-commands
+    method: ssh
+    name: NX-OS Device
+    password: pass
+    state: ST
+    type: nx-os
+    username: user
+device_group:
+  - description: Core Routers
+    display: 1
+    name: Core Routers
+  - description: Observatory / RackLAN Switches
+    display: 1
+    name: Observatory / RackLAN Switches
+  - description: Optical Gear
+    display: 1
+    name: Optical Gear
+frontend:
+  dropdown: 1
+  help: 'Note: some text that does not contain greater/less than sign'
+  network_name: My Network
+  noc_mail: My Email Address
+  noc_name: My NOC
+  noc_site: http://noc.network.net
+general:
+  logging: /tmp/my.log
+  max_lines: 2500
+  max_rate: 0
+  max_timeout: 60
+  redact:
+    - (?<=\+)\d+

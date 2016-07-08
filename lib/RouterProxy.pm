@@ -34,7 +34,7 @@ use RouterProxyConfig;
 
 my $timeout = 0;
 
-our $VERSION = '1.8.0';
+our $VERSION = '2.0.0';
 sub new {
 
   my $caller = shift;
