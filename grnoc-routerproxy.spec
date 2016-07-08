@@ -20,6 +20,7 @@ Requires: perl(Expect)
 Requires: perl(GRNOC::TL1)
 Requires: perl(GRNOC::Config)
 Requires: perl(Class::Accessor)
+Requires: perl(YAML)
 BuildRequires: tar
 AutoReqProv: no
 
@@ -40,6 +41,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__install} conf/apache/routerproxy.conf %{buildroot}/etc/httpd/conf.d/grnoc/routerproxy.conf
 %{__install} -d -p %{buildroot}/gnoc/routerproxy/lib/
 %{__install} -d -p %{buildroot}/gnoc/routerproxy/webroot/
+%{__install} -d -p %{buildroot}/gnoc/routerproxy/templates/
 %{__install} -d -p %{buildroot}/gnoc/routerproxy/.ssh/
 %{__install} lib/Commands.pm %{buildroot}/gnoc/routerproxy/lib/
 %{__install} lib/Logger.pm %{buildroot}/gnoc/routerproxy/lib/
@@ -48,6 +50,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__install} webroot/index.cgi %{buildroot}/gnoc/routerproxy/webroot/
 %{__install} webroot/style.css %{buildroot}/gnoc/routerproxy/webroot/
 %{__install} webroot/routerproxy.js %{buildroot}/gnoc/routerproxy/webroot/
+%{__install} templates/index.tt %{buildroot}/gnoc/routerproxy/templates/
 %{__install} README.md %{buildroot}/gnoc/routerproxy/
 %{__install} Changes.md %{buildroot}/gnoc/routerproxy/
 
@@ -64,6 +67,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(754,apache,apache,-)
 /gnoc/routerproxy/webroot/index.cgi
 /gnoc/routerproxy/webroot/routerproxy.js
+/gnoc/routerproxy/templates/index.tt
 %defattr(644,root,apache,-)
 %config(noreplace) /gnoc/routerproxy/webroot/style.css
 %defattr(640,root,apache,-)
