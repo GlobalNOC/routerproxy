@@ -57,19 +57,6 @@ sub loadXML {
                                 'ome-commands'      => [],
                                 'ons15454-commands' => []};
 
-    $self->{'exclude_group'} = {'brocade-commands'  => [],
-                                'ciena-commands'    => [],
-                                'force10-commands'  => [],
-                                'hdxc-commands'     => [],
-                                'hp-commands'       => [],
-                                'ios-commands'      => [],
-                                'ios2-commands'     => [],
-                                'ios6509-commands'  => [],
-                                'iosxr-commands'    => [],
-                                'junos-commands'    => [],
-                                'ome-commands'      => [],
-                                'ons15454-commands' => []};
-
     $self->{'frontend'}->{'dropdown'}     = $xml->{'enable-menu-commands'}->[0];
     $self->{'frontend'}->{'network_name'} = $xml->{'network'}->[0];
     $self->{'frontend'}->{'noc_name'}     = $xml->{'noc'}->[0];
@@ -101,7 +88,7 @@ sub loadXML {
         $l1_group->{'display'} = 1;
     }
     $self->{'device_group'}->{$xml->{'layer1-title'}->[0]} = $l1_group;
-    $self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'position'} = 0;
+    $self->{'device_group'}->{$xml->{'layer1-title'}->[0]}->{'position'} = 2;
 
     my $l2_group = { name        => $xml->{'layer2-title'}->[0],
                      display     => $xml->{'layer2-collapse'}->[0],
@@ -113,7 +100,7 @@ sub loadXML {
         $l2_group->{'display'} = 1;
     }
     $self->{'device_group'}->{$xml->{'layer2-title'}->[0]} = $l2_group;
-    $self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'position'} = 1;
+    $self->{'device_group'}->{$xml->{'layer2-title'}->[0]}->{'position'} = 1;
 
     my $l3_group = { name        => $xml->{'layer3-title'}->[0],
                      display     => $xml->{'layer3-collapse'}->[0],
@@ -125,7 +112,7 @@ sub loadXML {
         $l3_group->{'display'} = 1;
     }
     $self->{'device_group'}->{$xml->{'layer3-title'}->[0]} = $l3_group;
-    $self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'position'} = 2;
+    $self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'position'} = 0;
 
     my $position = 0;
     foreach my $device (@{$xml->{'device'}}) {
@@ -236,9 +223,38 @@ sub Save {
     $result->{'frontend'}      = $self->{'frontend'};
     $result->{'general'}       = $self->{'general'};
     $result->{'command_group'} = $self->{'command_group'};
-    $result->{'device_group'}  = $self->DeviceGroups();
-    $result->{'device'}        = $self->SortedDevices();
-    return $result;
+
+    
+    $result->{'device_group'} = [];
+    my $groups = $self->DeviceGroups();
+    foreach my $group (@{$groups}) {
+        my $new = { name => $group->{'name'},
+                    display => $group->{'display'},
+                    description => $group->{'description'}
+                  };
+        push(@{$result->{'device_group'}}, $new);
+    }
+
+    $result->{'device'} = [];
+    my $devices = $self->SortedDevices();
+    foreach my $device (@{$devices}) {
+        my $new = { name => $device->{'name'},
+                    address => $device->{'address'},
+                    city => $device->{'address'},
+                    device_group => $device->{'address'},
+                    method => $device->{'method'},
+                    password => $device->{'password'},
+                    state => $device->{'state'},
+                    type => $device->{'type'},
+                    username => $device->{'username'},
+                    command_group => $device->{'command_group'},
+                    exclude_group  => $device->{'exclude_group'}
+                  };
+        push(@{$result->{'device'}}, $new);
+    }
+
+    YAML::DumpFile($path, $result);
+    return 1;
 }
 
 =head2 Redacts
@@ -296,7 +312,7 @@ sub SortedDevices {
     my $self = shift;
 
     my $result = [];
-    foreach my $name (sort { $self->{'device'}->{$a}->{'position'} cmp $self->{'device'}->{$b}->{'position'} } keys %{$self->{'device'}}) {
+    foreach my $name (sort { $self->{'device'}->{$a}->{'position'} <=> $self->{'device'}->{$b}->{'position'} } keys %{$self->{'device'}}) {
         push(@{$result}, $self->{'device'}->{$name});
     }
     return $result;
@@ -311,7 +327,7 @@ sub DeviceGroups {
     my $self = shift;
 
     my $result = [];
-    foreach my $name (sort { $self->{'device_group'}->{$a}->{'position'} cmp $self->{'device_group'}->{$b}->{'position'} } keys %{$self->{'device_group'}}) {
+    foreach my $name (sort { $self->{'device_group'}->{$a}->{'position'} <=> $self->{'device_group'}->{$b}->{'position'} } keys %{$self->{'device_group'}}) {
         push(@{$result}, $self->{'device_group'}->{$name});
     }
     return $result;
