@@ -120,9 +120,22 @@ sub ConfigChooser {
 
 sub getDevice {
     my $device = $cgi->param("device");
+    if (!defined $device) {
+        print $cgi->header(-type => "text/html",
+                           -status => "400" );
+        print "Request requires parameters: device";
+        return;
+    }
 
     # Create a copy of the device data and remove all secrets.
     my $data = $devices->{$device};
+    if (!defined $data) {
+        print $cgi->header(-type => "text/html",
+                           -status => "200" );
+        print "The specified device does not exist.";
+        return;
+    }
+
     $data->{"commands"}    = $conf->DeviceCommands($data->{"name"});
     $data->{"enable_menu"} = $global_enable_menu_commands;
 
@@ -140,14 +153,21 @@ sub getDevice {
 sub getResponses {
     my $address   = $cgi->param("device");
     my $command   = $cgi->param("command");
-    my $arguments = $cgi->param("arguments");
-    my $menu_req  = $cgi->param("menu");
-    
+    my $arguments = $cgi->param("arguments") || "";
+    my $menu_req  = $cgi->param("menu") || 0;
+
+    if (!defined $address || !defined $command) {
+        print $cgi->header(-type => "text/html",
+                           -status => "400" );
+        print "Request requires parameters: device, command";
+        return;
+    }
+
     my $device = $devices->{$address};
     if (!defined $device) {
         print $cgi->header(-type => "text/html",
                            -status => "200" );
-        print "Requested device is not configured.  Please reload the page.";
+        print "The specified device does not exist.";
         return;
     }
 
@@ -231,8 +251,8 @@ sub getResponse {
 
 sub getError {
     print $cgi->header(-type => "text/html",
-                       -status => "500" );
-    print "An unexpected error occured.";
+                       -status => "501" );
+    print "The requested method does not exist.";
 }
 
 sub makeHTML2 {
@@ -273,6 +293,7 @@ sub makeHTML2 {
     print $cgi->header(-type => "text/html",
                        -status => "200" );
     print $html;
+    return;
 }
 
 sub getCienaMenuResponse {
