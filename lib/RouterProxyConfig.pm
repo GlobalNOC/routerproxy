@@ -21,7 +21,7 @@ sub New {
     $self->{'device'}        = {};
     $self->{'device_group'}  = {};
     $self->{'frontend'}      = {};
-    $self->{'logging'}       = "";
+    $self->{'general'}->{'logging'}       = "";
     $self->{'maximum'}       = {};
 
     if (index($path, ".xml") != -1 || index($path, ".conf") != -1) {
@@ -77,16 +77,16 @@ sub loadXML {
     $self->{'frontend'}->{'noc_mail'}     = $xml->{'email'}->[0];
     $self->{'frontend'}->{'help'}         = $xml->{'command-help'}->[0];
     
-    $self->{'logging'}                    = $xml->{'log-file'}->[0];
+    $self->{'general'}->{'logging'}                    = $xml->{'log-file'}->[0];
 
-    $self->{'maximum'}->{'lines'}         = $xml->{'max-lines'}->[0];
-    $self->{'maximum'}->{'timeout'}       = $xml->{'timeout'}->[0];
-    $self->{'maximum'}->{'rate'}          = $xml->{'spam-seconds'}->[0];
+    $self->{'general'}->{'max_lines'}         = $xml->{'max-lines'}->[0];
+    $self->{'general'}->{'max_timeout'}       = $xml->{'timeout'}->[0];
+    $self->{'general'}->{'max_rate'}          = $xml->{'spam-seconds'}->[0];
 
-    $self->{'redact'}                     = [];
+    $self->{'general'}->{'redact'}                     = [];
     if (defined $xml->{'redact-stanzas'} && defined $xml->{'redact-stanzas'}->[0]) {
         foreach my $s (@{$xml->{'redact-stanzas'}->[0]->{'stanza'}}) {
-            push(@{$self->{'redact'}}, $s);
+            push(@{$self->{'general'}->{'redact'}}, $s);
         }
     }
 
@@ -127,6 +127,7 @@ sub loadXML {
     $self->{'device_group'}->{$xml->{'layer3-title'}->[0]} = $l3_group;
     $self->{'device_group'}->{$xml->{'layer3-title'}->[0]}->{'position'} = 2;
 
+    my $position = 0;
     foreach my $device (@{$xml->{'device'}}) {
         my $_device = {};
         $_device->{'name'}     = $device->{'name'}->[0];
@@ -138,7 +139,9 @@ sub loadXML {
         $_device->{'address'}  = $device->{'address'}->[0];
         $_device->{'method'}   = $device->{'method'}->[0];
         $_device->{'type'}     = $device->{'type'}->[0]; # change to dev type
-
+        $_device->{'position'} = $position;
+        $position = $position + 1;
+        
         # Add configured command group.
         my $_command_group = $_device->{'type'} . '-commands';
         $_device->{'command_group'} = [ $_command_group ];
@@ -187,16 +190,9 @@ sub loadYAML {
     my $yaml = YAML::LoadFile($path);
     
     $self->{'frontend'} = $yaml->{'frontend'};
-
-    # TODO: Save these in $self->{'general'}
-    $self->{'logging'}                    = $yaml->{'general'}->{'logging'};
-    $self->{'maximum'}->{'lines'}         = $yaml->{'general'}->{'max_lines'};
-    $self->{'maximum'}->{'timeout'}       = $yaml->{'general'}->{'max_timeout'};
-    $self->{'maximum'}->{'rate'}          = $yaml->{'general'}->{'max_rate'};
-    $self->{'redact'}                     = $yaml->{'general'}->{'redact'};
+    $self->{'general'}  = $yaml->{'general'};
 
     $self->{'command_group'} = $yaml->{'command_group'};
-    $self->{'exclude_group'} = $yaml->{'exclude_group'};
 
     my $position = 0;
     $self->{'device_group'} = {};
@@ -207,10 +203,13 @@ sub loadYAML {
         $position = $position + 1;
     }
 
+    $position = 0;
     $self->{'device'} = {};
     foreach my $device (@{$yaml->{'device'}}) {
         $self->{'device'}->{$device->{'name'}} = $device;
-
+        $self->{'device'}->{$device->{'name'}}->{'position'} = $position;
+        $position = $position + 1;
+    
         # Ensure that a list is defined for exclude commands.
         if (!defined $device->{"exclude_group"}) {
             $device->{"exclude_group"} = [];
@@ -223,6 +222,25 @@ sub loadYAML {
     }
 }
 
+=head2 Save
+
+Saves YAML to file.
+
+=cut
+sub Save {
+    my $self = shift;
+    my $path = shift;
+
+    my $result = {};
+
+    $result->{'frontend'}      = $self->{'frontend'};
+    $result->{'general'}       = $self->{'general'};
+    $result->{'command_group'} = $self->{'command_group'};
+    $result->{'device_group'}  = $self->DeviceGroups();
+    $result->{'device'}        = $self->SortedDevices();
+    return $result;
+}
+
 =head2 Redacts
 
 Returns a list of redact regexs.
@@ -230,7 +248,7 @@ Returns a list of redact regexs.
 =cut
 sub Redacts {
     my $self = shift;
-    return \@{$self->{'redact'}};
+    return \@{$self->{'general'}->{'redact'}};
 }
 
 =head2 CommandsInGroup
@@ -269,6 +287,19 @@ Returns a copy of the devices in this config as a hash.
 sub Devices {
     my $self = shift;
     return \%{$self->{'device'}};
+}
+
+=head2 SortedDevices
+
+=cut
+sub SortedDevices {
+    my $self = shift;
+
+    my $result = [];
+    foreach my $name (sort { $self->{'device'}->{$a}->{'position'} cmp $self->{'device'}->{$b}->{'position'} } keys %{$self->{'device'}}) {
+        push(@{$result}, $self->{'device'}->{$name});
+    }
+    return $result;
 }
 
 =head2 DeviceGroups
@@ -342,7 +373,7 @@ Returns the path where logs should be written.
 =cut
 sub LogFile {
     my $self = shift;
-    return $self->{'logging'};
+    return $self->{'general'}->{'logging'};
 }
 
 =head2 MaxLines
@@ -352,7 +383,7 @@ Returns the maximum number of lines allowed in a switch response.
 =cut
 sub MaxLines {
     my $self = shift;
-    return $self->{'maximum'}->{'lines'};
+    return $self->{'general'}->{'max_lines'};
 }
 
 =head2 MaxRate
@@ -362,7 +393,7 @@ Returns the maximum rate in seconds that requests may be made.
 =cut
 sub MaxRate {
     my $self = shift;
-    return $self->{'maximum'}->{'rate'};
+    return $self->{'general'}->{'max_rate'};
 }
 
 =head2 MaxTimeout
@@ -372,7 +403,7 @@ Returns the maximum number of seconds to wait before timing out.
 =cut
 sub MaxTimeout {
     my $self = shift;
-    return $self->{'maximum'}->{'timeout'};
+    return $self->{'general'}->{'max_timeout'};
 }
 
 =head2 NetworkName
