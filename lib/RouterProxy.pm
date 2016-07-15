@@ -30,9 +30,11 @@ use GRNOC::TL1::Device::Nortel::HDXc;
 use GRNOC::TL1::Device::Cisco::ONS15454;
 use GRNOC::TL1::Device::Ciena::CoreDirector;
 
+use RouterProxyConfig;
+
 my $timeout = 0;
 
-our $VERSION = '1.8.0';
+our $VERSION = '2.0.0';
 sub new {
 
   my $caller = shift;
@@ -999,9 +1001,8 @@ sub sanitize_text{
   my $self = shift;
   my $text = shift;
 
-  my $config = GRNOC::Config->new( config_file => $self->{'config_path'}, force_array => 1 );
-
-  my $stanzas = $config->get( '/config/redact-stanzas/stanza' );
+  my $conf = RouterProxyConfig->New($self->{'config_path'});
+  my $stanzas = $conf->Redacts();
 
   foreach my $stanza ( @$stanzas ) {
     $stanza =~ s/ /&nbsp\;/g;

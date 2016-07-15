@@ -1,17 +1,21 @@
 #!/usr/bin/perl
+use warnings;
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 use CGI;
-use CGI::Ajax;
 use FileHandle;
 use XML::Simple;
 use RouterProxy;
+use RouterProxyConfig;
 use Commands;
 use Encode;
 use Data::Dumper;
 use GRNOC::Config;
+use Template;
+
+use JSON;
 
 # set our home directory relative to our script
 my $home_dir = "$FindBin::Bin/../";
@@ -20,33 +24,29 @@ $ENV{'HOME'} = $home_dir;
 # do they have Junoscript installed?
 my $hasJunoscript;
 BEGIN {
-
-  eval {
-    require JUNOS::Device;
-  };
-  if ($@) {
-    $hasJunoscript = 0;
-  }
-  else {
-    $hasJunoscript = 1;
-    JUNOS::Device->import;
-  }
+    eval {
+        require JUNOS::Device;
+    };
+    if ($@) {
+        $hasJunoscript = 0;
+    } else {
+        $hasJunoscript = 1;
+        JUNOS::Device->import;
+    }
 }
 
 # do they have IOS XR XML installed?
 my $hasIosXML;
 BEGIN {
-
-  eval {
-    require Cisco::IOS_XR;
-  };
-  if ($@) {
-    $hasIosXML = 0;
-  }
-  else {
-    $hasIosXML = 1;
-    Cisco::IOS_XR->import;
-  }
+    eval {
+        require Cisco::IOS_XR;
+    };
+    if ($@) {
+        $hasIosXML = 0;
+    } else {
+        $hasIosXML = 1;
+        Cisco::IOS_XR->import;
+    }
 }
 
 use GRNOC::TL1;
@@ -64,794 +64,236 @@ use strict;
 local $ENV{'XML_SIMPLE_PREFERRED_PARSER'} = 'XML::Parser';
 
 my $cgi = CGI->new();
-my $ajax = CGI::Ajax->new(
-                          'getResponse' => \&getResponse,
-                          'getMenuResponse' => \&getMenuResponse,
-                          'getIosMenuResponse' => \&getIosMenuResponse,
-                          'getHdxcMenuResponse' => \&getHdxcMenuResponse,
-                          'getOmeMenuResponse' => \&getOmeMenuResponse,
-                          'getOnsMenuResponse' => \&getOnsMenuResponse,
-                          'getCienaMenuResponse' => \&getCienaMenuResponse
-                         );
-#$ajax->DEBUG(1);
-#$ajax->JSDEBUG(1);
-my $config_path = ConfigChooser($ENV{'REQUEST_URI'}, "/etc/grnoc/routerproxy/routerproxy_mappings.xml");
+my $config_path = ConfigChooser( $ENV{'REQUEST_URI'},
+                                 "/etc/grnoc/routerproxy/routerproxy_mappings.xml");
 
 unless (defined($config_path) && -e $config_path) {
-   warn ("Please check mapping file. The config file for this url cannot be located\n");
-   print $cgi->header();
-   print $cgi->start_html();
-   print "<H2>Please check mapping file. The config file for this url cannot be located</H2>";
-   print $cgi->end_html();
-   
-   exit 1;
+    warn ("Please check mapping file. The config file for this url cannot be located\n");
+    print $cgi->header();
+    print $cgi->start_html();
+    print "<H2>Please check mapping file. The config file for this url cannot be located</H2>";
+    print $cgi->end_html();
+    
+    exit 1;
 }
 
-my $xml = XMLin($config_path, forcearray => 1);
+my $conf = RouterProxyConfig->New($config_path);
 
-my $devices = getDevices($xml);
-my @routers = parseRouters();
-my @switches = parseSwitches();
-my @opticals = parseOpticals();
+# A little hack to store devices by address. Should be changed to use
+# device name in the future.
+my $devices = $conf->Devices();
 
-my @all_devices = ( @routers, @switches, @opticals );
-
-my $logfile = $xml->{'log-file'}->[0];
-my $maxlines = $xml->{'max-lines'}->[0];
-my $timeout = $xml->{'timeout'}->[0];
-my $spamSeconds = $xml->{'spam-seconds'}->[0];
-my $global_enable_menu_commands = $xml->{'enable-menu-commands'}->[0];
+my $logfile                     = $conf->LogFile();
+my $maxlines                    = $conf->MaxLines();
+my $timeout                     = $conf->MaxTimeout();
+my $spamSeconds                 = $conf->MaxRate();
+my $global_enable_menu_commands = $conf->ShowDropdown();
 
 my $remoteIP = $ENV{'REMOTE_ADDR'};
 
-my $menuHTML = "";
-my $iosMenu = "";
-my $hdxcMenu = "";
-my $omeMenu = "";
-my $onsMenu = "";
-my $cienaMenu = "";
 
-
-$menuHTML = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a onclick=menuCommand('environment')>Environment</a></li><li><a  onclick=menuCommand('filesystem')>File System</a></li><li><a  onclick=menuCommand('interfaces')>Interfaces</a></li><li><a  onclick=menuCommand('inventory')>Inventory</a></li></ul></li><li><a >Protocols</a><ul><li><a  onclick=menuCommand('bgp')>BGP</a></li><li><a  onclick=menuCommand('ipv6Neighbors')>IPV6 Neighbors</a></li><li><a  onclick=menuCommand('isis')>ISIS Adjacencies</a></li><li><a  onclick=menuCommand('msdp')>MSDP</a></li><li><a  onclick=menuCommand('multicastStatistics')>Multicast Statistics</a></li><li><a  onclick=menuCommand('snmpStatistics')>SNMP Statistics</a></li></ul></li><li><a >System</a><ul><li><a  onclick=menuCommand('bootMessages')>Boot Messages</a></li><li><a  onclick=menuCommand('version')>Version</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$iosMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a>Hardware</a><ul><li><a onclick=iosMenuCommand('interfaces')>Interfaces</a></li><li><a onclick=iosMenuCommand('inventory')>Inventory</a></li></ul></li><li><a>Protocols</a><ul><li><a onclick=iosMenuCommand('bgp')>BGP</a></li><li><a onclick=iosMenuCommand('ipv6Neighbors')>IPv6 Neighbors</a></li><li><a onclick=iosMenuCommand('isis')>ISIS</a></li><li><a onclick=iosMenuCommand('msdp')>MSDP</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$hdxcMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=hdxcMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=hdxcMenuCommand('alarms')>Alarms</a></li><li><a  onclick=hdxcMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$omeMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=omeMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=omeMenuCommand('alarms')>Alarms</a></li><li><a  onclick=omeMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$onsMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=onsMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=onsMenuCommand('alarms')>Alarms</a></li><li><a  onclick=onsMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
-
-$cienaMenu = "<center><table class='menu-table'><tr><td><center><ul id='menu'><li><a >Hardware</a><ul><li><a  onclick=cienaMenuCommand('inventory')>Inventory</a></li></ul></li><li><a >System</a><ul><li><a  onclick=cienaMenuCommand('alarms')>Alarms</a></li><li><a onclick=cienaMenuCommand('circuits')>Circuits</a></li></ul></li></ul></center></td></tr></table></center>";
-
-print $ajax->build_html($cgi, \&makeHTML);
+# Prints HTML to STDOUT
+makeHTML2();
 
 
 sub ConfigChooser {
-  my $url = shift;
-  my $map_file = shift;
+    my $url      = shift;
+    my $map_file = shift;
  
-  #if mapping file is not found
-  unless (-e $map_file) {
-     warn ("Mapping file is not found.\n");
-     return undef;
-  }
-
-  my $config = GRNOC::Config->new( config_file => $map_file, force_array => 1 );
-  
-  my $entries = $config->get( '/mappings/map' );
-
-  foreach my $entry ( @$entries ) {
-     my $regexp = $entry->{'regexp'};
-     if ( $url =~ /$regexp/ ) {
-        return $entry->{'config_location'};
-     }
-  }
-  return undef;
-}
-
-sub FunctionChooser {
-   my $type = shift;
-   my $enable_menu_commands = shift;
-   my $function = "clearMenu();";
-
-   if (defined($global_enable_menu_commands)) {
-      $enable_menu_commands = $global_enable_menu_commands;
-   }
-      if ($type eq "junos") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addJunOS(1);";
-        }
-        else {
-           $function = "addJunOS(0);";
-        }
-           
-      }
-      elsif ($type eq "ios") {
-        $function = "addIOS();";
-      }
-      elsif ($type eq "ios2") {
-        $function = "addIOS2();";
-      }
-      elsif ($type eq "ios6509") {
-        $function = "addIOS6509();";
-      }
-      elsif ($type eq "iosxr") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addIOSXR(1);";
-        }
-        else {
-           $function = "addIOSXR(0);";
-        }
-      }
-      elsif ($type eq "hdxc") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addHDXC(1);";
-        }
-        else {
-           $function = "addHDXC(0);";
-        }
-      }
-      elsif ($type eq "nx-os") {
-        $function = "addNXOS();";
-      }
-      elsif ($type eq "ons15454") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addONS15454(1);";
-        }
-        else {
-           $function = "addONS15454(0);";
-        }
-      }
-      elsif ($type eq "ome") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addOME(1);";
-        }
-        else {
-           $function = "addOME(0);";
-        }
-      }
-      elsif ($type eq "ciena") {
-        if (!defined($enable_menu_commands) || $enable_menu_commands>0) {
-           $function = "addCiena(1);";
-        }
-        else {
-           $function = "addCiena(0);";
-        }
-      }
-      elsif ($type eq "force10") {
-        $function = "addForce10();";
-      }
-      elsif ($type eq "hp") {
-        $function = "addHP();";
-      }elsif($type eq "brocade"){
-        $function = "addBrocade();";
-      }
-     
-      return $function;
-}
-
-sub getMenuCommands {
-   my $type = shift;
-   my $enable_menu_commands = shift;
-   my $menu = "";
-
-   if (defined($global_enable_menu_commands)) {
-      $enable_menu_commands = $global_enable_menu_commands;
-   }
-
-   if (defined($enable_menu_commands) && $enable_menu_commands<=0) {
-      return $menu;
-   }
-   
-   if ($type eq "junos") {
-      $menu = $menuHTML
-   }
-   elsif ($type eq "hdxc") {
-      $menu = $hdxcMenu;
-   }
-   elsif ($type eq "ome") {
-      $menu = $omeMenu;
-   }
-   elsif ($type eq "ons15454") {
-      $menu = $onsMenu;
-   }
-   elsif ($type eq "ciena") {
-      $menu = $cienaMenu;
-   }
-   elsif ($type eq "iosxr") {
-      $menu = $iosMenu;
-   }
-  
-   return $menu;
-}
-
-sub makeHTML {
-
-  my $network = $xml->{'network'}->[0];
-  my $noc = $xml->{'noc'}->[0];
-  my $title = $network . " Router Proxy";
-  my $admin = $xml->{'email'}->[0];
-  my $nocWebsite = $xml->{'noc-website'}->[0];
-  my $commandHelp = $xml->{'command-help'}->[0];
-
-  my $routerTitle = $xml->{'layer3-title'}->[0];
-  my $switchTitle = $xml->{'layer2-title'}->[0];
-  my $opticalTitle = $xml->{'layer1-title'}->[0];
-
-  my $routerCollapse = $xml->{'layer3-collapse'}->[0];
-  my $switchCollapse = $xml->{'layer2-collapse'}->[0];
-  my $opticalCollapse = $xml->{'layer1-collapse'}->[0];
-
-  my $routerDisplay = "table";
-  my $switchDisplay = "table";
-  my $opticalDisplay = "table";
-
-  $routerDisplay = "none" if ($routerCollapse);
-  $switchDisplay = "none" if ($switchCollapse);
-  $opticalDisplay = "none" if ($opticalCollapse);
-
-  my $html = "
-<!DOCTYPE html
-  PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
-   \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
-<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en-US\" xml:lang=\"en-US\">
-<head>
-<title>$title</title>
-<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" />
-<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />
-<script type=\"text/javascript\">
-      //<![CDATA[
-
-function menuCommand(cmd) {
-
-  document.getElementById('connecting').innerHTML='Sending...';
-  document.getElementById('menu-cmd').value=cmd;
-  getMenuResponse(['menu-cmd', 'device'], ['response', 'connecting']);
-  document.getElementById('response').style.display='block';
-}
-
-function iosMenuCommand(cmd) {
-
-  document.getElementById('connecting').innerHTML='Sending...';
-  document.getElementById('menu-cmd').value=cmd;
-  getIosMenuResponse(['menu-cmd', 'device'], ['response', 'connecting']);
-  document.getElementById('response').style.display='block';
-}
-
-function hdxcMenuCommand(cmd) {
-
-  document.getElementById('connecting').innerHTML='Sending...';
-  document.getElementById('menu-cmd').value=cmd;
-  getHdxcMenuResponse(['menu-cmd', 'device'], ['response', 'connecting']);
-  document.getElementById('response').style.display='block';
-}
-
-function omeMenuCommand(cmd) {
-
-  document.getElementById('connecting').innerHTML='Sending...';
-  document.getElementById('menu-cmd').value=cmd;
-  getOmeMenuResponse(['menu-cmd', 'device'], ['response', 'connecting']);
-  document.getElementById('response').style.display='block';
-}
-
-function onsMenuCommand(cmd) {
-
-  document.getElementById('connecting').innerHTML='Sending...';
-  document.getElementById('menu-cmd').value=cmd;
-  getOnsMenuResponse(['menu-cmd', 'device'], ['response', 'connecting']);
-  document.getElementById('response').style.display='block';
-}
-
-function cienaMenuCommand(cmd) {
-
-  document.getElementById('connecting').innerHTML='Sending...';
-  document.getElementById('menu-cmd').value=cmd;
-  getCienaMenuResponse(['menu-cmd', 'device'], ['response', 'connecting']);
-  document.getElementById('response').style.display='block';
-}
-
-function clearMenu() {
-   document.getElementById('menu-commands').innerHTML='';
-}
-
-function addJunOS(menu) {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  my $commands = $xml->{'junos-commands'}->[0]->{'command'};
-  my $i = 0;
-  foreach my $command (@$commands) {
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-  var menuCommandHTML = \"\";
-  if (menu==1) { menuCommandHTML = \"$menuHTML\"; }
-  document.getElementById('menu-commands').innerHTML=menuCommandHTML;
-}
-
-function addIOS() {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'ios-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-document.getElementById('menu-commands').innerHTML='';
-}
-
-function addNXOS() {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'nx-os-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-
-  $html .= "addOptions(myArray);
-document.getElementById('menu-commands').innerHTML='';
-}
-
-function addIOS2() {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'ios2-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-document.getElementById('menu-commands').innerHTML='';
-}
-
-function addBrocade(){
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'brocade-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-      $html .= "myArray[$i] = \"$command\";\n";
-      $i++;
-  }
-  $html .= "addOptions(myArray);                                                                                                                                                                                                                                                       
-document.getElementById('menu-commands').innerHTML='';        
-}
-
-function addIOS6509() {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'ios6509-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-document.getElementById('menu-commands').innerHTML='';
-}
-
-function addIOSXR(menu) {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'iosxr-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-var menuCommandHTML = \"\";
-  if (menu==1) { menuCommandHTML = \"$iosMenu\"; }
-document.getElementById('menu-commands').innerHTML=menuCommandHTML;
-}
-
-function addHDXC(menu) {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'hdxc-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-var menuCommandHTML = \"\";
-  if (menu==1) { menuCommandHTML = \"$hdxcMenu\"; }
-document.getElementById('menu-commands').innerHTML=menuCommandHTML;
-}
-
-function addONS15454(menu) {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'ons15454-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-var menuCommandHTML = \"\";
-  if (menu==1) { menuCommandHTML = \"$onsMenu\"; }
-document.getElementById('menu-commands').innerHTML=menuCommandHTML;
-}
-
-function addOME(menu) {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'ome-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-var menuCommandHTML = \"\";
-  if (menu==1) { menuCommandHTML = \"$omeMenu\"; }
-document.getElementById('menu-commands').innerHTML=menuCommandHTML;
-}
-
-function addCiena(menu) {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'ciena-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-var menuCommandHTML = \"\";
-  if (menu==1) { menuCommandHTML = \"$cienaMenu\"; }
-document.getElementById('menu-commands').innerHTML=menuCommandHTML;
-}
-
-function addForce10() {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'force10-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-document.getElementById('menu-commands').innerHTML='';
-}
-
-function addHP() {
-
-  removeOptions();
-  var myArray = new Array();";
-
-  $commands = $xml->{'hp-commands'}->[0]->{'command'};
-  $i = 0;
-  foreach my $command (@$commands) {
-
-    $html .= "myArray[$i] = \"$command\";\n";
-    $i++;
-  }
-  $html .= "addOptions(myArray);
-document.getElementById('menu-commands').innerHTML='';
-}
-
-function addOptions(vals) {
-
-  var object = document.getElementById(\"cmd\");
-  for (var i = 0; i < vals.length; i++) {
-    object.options[object.options.length] = new Option(vals[i], vals[i], false, false);
-  }
-}
-
-function removeOptions() {
-
-  var object = document.getElementById(\"cmd\");
-  for (var i = object.options.length - 1; i >= 0; i--) {
-    object.options[i] = null;
-  }
-  object.selectedIndex = -1;
-}
-
-function toggle(id) {
-
-  var object = document.getElementById(id);
-  var currentDisplay = object.style.display;
-
-  if (currentDisplay == 'none') {
-
-    object.style.display = 'table';
-  }
-
-  else {
-
-    object.style.display = 'none';
-  }
-}
-
-//]]>
-</script>
-</head>
-<body>
-<div class=\"logo\">$network Router Proxy</div>";
-
-  if ($noc ne "") {
-
-    $html .= "
-<center>
-  <h2>A service of the <a href=\"$nocWebsite\">$noc</a></h2>
-</center>";
-  }
-  else {
-
-    $html .= "<br />";
-  }
-
-  if (@routers > 0) {
-
-    $html .= "<div class=\"devices\">
-    <table class=\"title\">
-    <tr class=\"menu-title\" onclick=\"toggle('router-menu');\"><td colspan=\"3\">$routerTitle</td></tr>
-    </table>
-    <table id='router-menu' style='display: $routerDisplay'>";
-
-    my $devicesHTML = "";
-    my $i = 0;
-
-    foreach my $device (@routers) {
-
-      if ($i == 0) {
-        $devicesHTML .= "<tr class=\"primary\">";
-      }
-
-      my $name = $device->{'name'}->[0];
-      my $address = $device->{'address'}->[0];
-      my $city = $device->{'city'}->[0];
-      my $state = $device->{'state'}->[0];
-      my $type = $device->{'type'}->[0];
-
-      my $location_data = _parseLocationData( city => $city, state => $state);
-
-      my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
-
-      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
-      if ($i == 2) {
-        $devicesHTML .= "</tr>";
-        $i = -1;
-      }
-      $i++;
+    # If mapping file is not found
+    unless (-e $map_file) {
+        warn ("Mapping file is not found.\n");
+        return undef;
     }
-    if ($i == 1) {
-      $devicesHTML .= "<td></td><td></td></tr>";
+
+    my $config  = GRNOC::Config->new( config_file => $map_file, force_array => 1 );
+    my $entries = $config->get( '/mappings/map' );
+
+    foreach my $entry ( @$entries ) {
+        my $regexp = $entry->{'regexp'};
+        if ( $url =~ /$regexp/ ) {
+            return $entry->{'config_location'};
+        }
     }
-    elsif ($i == 2) {
-      $devicesHTML .= "<td></td></tr>";
-    }
-    $html .= $devicesHTML;
-    $html .= "
-    </table>
-  </div>
-  <br />";
-  }
-
-  if (@switches > 0) {
-
-    $html .= "<div class=\"devices\">
-
-    <table class=\"title\">
-    <tr class=\"menu-title\" onclick=\"toggle('switch-menu');\"><td colspan=\"3\">$switchTitle</td></tr>
-    </table>
-    <table id='switch-menu' style='display: $switchDisplay'>";
-
-    my $devicesHTML = "";
-    my $i = 0;
-
-    foreach my $device (@switches) {
-
-      if ($i == 0) {
-        $devicesHTML .= "<tr class=\"primary\">";
-      }
-
-      my $name = $device->{'name'}->[0];
-      my $address = $device->{'address'}->[0];
-      my $city = $device->{'city'}->[0];
-      my $state = $device->{'state'}->[0];
-      my $type = $device->{'type'}->[0];
-      
-      my $location_data = _parseLocationData( city => $city, state => $state);
-
-      my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
-
-      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
-      if ($i == 2) {
-        $devicesHTML .= "</tr>";
-        $i = -1;
-      }
-      $i++;
-    }
-    if ($i == 1) {
-      $devicesHTML .= "<td></td><td></td></tr>";
-    }
-    elsif ($i == 2) {
-      $devicesHTML .= "<td></td></tr>";
-    }
-    $html .= $devicesHTML;
-    $html .= "
-    </table>
-  </div>
-  <br />";
-  }
-
-  if (@opticals > 0) {
-
-    $html .= "<div class=\"devices\">
-
-    <table class=\"title\">
-    <tr class=\"menu-title\" onclick=\"toggle('optical-menu');\"><td colspan=\"3\">$opticalTitle</td></tr>
-    </table>
-    <table id='optical-menu' style='display: $opticalDisplay'>";
-
-    my $devicesHTML = "";
-    my $i = 0;
-
-    foreach my $device (@opticals) {
-
-      if ($i == 0) {
-        $devicesHTML .= "<tr class=\"primary\">";
-      }
-
-      my $name = $device->{'name'}->[0];
-      my $address = $device->{'address'}->[0];
-      my $city = $device->{'city'}->[0];
-      my $state = $device->{'state'}->[0];
-      my $type = $device->{'type'}->[0];
-
-      my $location_data = _parseLocationData( city => $city, state => $state);
-      my $function = FunctionChooser($type, $device->{'enable-menu-commands'}->[0]);
-
-      $devicesHTML .= "<td><input name=\"device\" id=\"device\" type=\"radio\" value=\"$address\" onClick=\"$function\" />$name $location_data</td>";
-      if ($i == 2) {
-        $devicesHTML .= "</tr>";
-        $i = -1;
-      }
-      $i++;
-    }
-    if ($i == 1) {
-      $devicesHTML .= "<td></td><td></td></tr>";
-    }
-    elsif ($i == 2) {
-      $devicesHTML .= "<td></td></tr>";
-    }
-    $html .= $devicesHTML;
-    $html .= "
-    </table>
-  </div>
-  <br />";
-  }
-
-  $html .= "
-  <div class=\"menu-commands\" id=\"menu-commands\">";
-
-  my $type1 = $all_devices[0]->{'type'}->[0];
-  my $menu1 = $all_devices[0]->{'enable-menu-commands'}->[0];
-  $html .= getMenuCommands($type1, $menu1);
-
-  $html .= "</div>
-
-  <br />
-  <center><h4>";
-
-  $html .= $commandHelp;
-  $html .= "</h4></center>";
-  $html .= "<div class=\"query\" id=\"query\">
-    Command: <select class=\"c\" name=\"cmd\" id=\"cmd\">";
-
-  # grab all the commands
-  my $type = "";
-  if ($all_devices[0]->{'type'}->[0] eq "ios") {
-    $type = "ios-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ios6509") {
-    $type = "ios6509-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ios2") {
-    $type = "ios2-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "junos") {
-    $type = "junos-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "iosxr") {
-    $type = "iosxr-commands";
-  }
-  elsif ($all_devices[0]->{'type'}-[0] eq "nx-os") {
-    $type = "nx-os-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "hdxc") {
-    $type = "hdxc-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ons15454") {
-    $type = "ons15454-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ome") {
-    $type = "ome-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "ciena") {
-    $type = "ciena-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "force10") {
-    $type = "force10-commands";
-  }
-  elsif ($all_devices[0]->{'type'}->[0] eq "hp") {
-    $type = "hp-commands";
-}elsif ($all_devices[0]->{'type'}->[0] eq "brocade"){
-    $type = "brocade-commands";
+    return undef;
 }
-  my $commands = $xml->{$type}->[0]->{'command'};
-  foreach my $command (@$commands) {
-    $html .= "<option>$command</option>"
-  }
-  $html .= "
-        </select>
-        <input class=\"q\" type=\"text\" name=\"args\" id=\"args\" onKeyUp=\"if (event.keyCode == 13) { document.getElementById('connecting').innerHTML='Sending...';getResponse(['cmd', 'args', 'device'], ['response', 'connecting']);document.getElementById('response').style.display='block'; }\"/> <input class=\"s\" type=\"submit\" value=\"Submit\" onclick=\"document.getElementById('connecting').innerHTML='Sending...';getResponse(['cmd', 'args', 'device'], ['response', 'connecting']);document.getElementById('response').style.display='block';\" />
-  </div>
-  <div class=\"connecting\" id=\"connecting\"></div>
-  <br />
-  <br />
-  <div class=\"response\" id=\"response\"></div>
 
-<center>
-  <hr width=\"50%\" />
-  <h4>Developed by Global Research NOC Systems Engineering<br />
-  Copyright 2010, The Trustees of Indiana University</h4>
-</center>
-</body>
+sub getDevice {
+    my $device = $cgi->param("device");
+    if (!defined $device) {
+        print $cgi->header(-type => "text/html",
+                           -status => "400" );
+        print "Request requires parameters: device";
+        return;
+    }
 
-<input type=\"hidden\" id=\"menu-cmd\"></input>
+    # Create a copy of the device data and remove all secrets.
+    my $data = $devices->{$device};
+    if (!defined $data) {
+        print $cgi->header(-type => "text/html",
+                           -status => "200" );
+        print "The specified device does not exist.";
+        return;
+    }
 
-<script type=\"text/javascript\">
-  document.getElementById('response').style.display='none';
-</script>
-</html>";
+    $data->{"commands"}    = $conf->DeviceCommands($data->{"name"});
+    $data->{"enable_menu"} = $global_enable_menu_commands;
 
-  return $html;
+    delete $data->{"username"};
+    delete $data->{"password"};
+    delete $data->{"method"};
+    delete $data->{"command_group"};
+    delete $data->{"exclude_group"};
+
+    print $cgi->header(-type => "text/html",
+                       -status => "200" );
+    print encode_json($data);
+}
+
+sub getResponses {
+    my $address   = $cgi->param("device");
+    my $command   = $cgi->param("command");
+    my $arguments = $cgi->param("arguments") || "";
+    my $menu_req  = $cgi->param("menu") || 0;
+
+    if (!defined $address || !defined $command) {
+        print $cgi->header(-type => "text/html",
+                           -status => "400" );
+        print "Request requires parameters: device, command";
+        return;
+    }
+
+    my $device = $devices->{$address};
+    if (!defined $device) {
+        print $cgi->header(-type => "text/html",
+                           -status => "200" );
+        print "The specified device does not exist.";
+        return;
+    }
+
+    my $menu_enabled = $global_enable_menu_commands;
+    my $data         = "";
+
+    if ($menu_req && $menu_enabled && $device->{"type"} eq "junos") {
+        $data = getMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "iosxr") {
+        $data = getIosMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "hdxc") {
+        $data = getHdxcMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "ons15454") {
+        $data = getOnsMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "ome") {
+        $data = getOmeMenuResponse($command, $device);
+    } elsif ($menu_req && $menu_enabled && $device->{"type"} eq "ciena") {
+        $data = getCienaMenuResponse($command, $device);
+    } elsif ($menu_req) {
+        $data = "Menu enabled requests are not configured for this device. Please reload the page.";
+    } else {
+        $data = getResponse($command, $arguments, $device);
+    }
+
+    print $cgi->header(-type => "text/html",
+                       -status => "200" );
+    print "$data";
+}
+
+
+sub getResponse {
+    my $command   = shift;
+    my $arguments = shift;
+    my $device    = shift;
+
+    my $last = Logger::getLastTime($logfile);
+    my $now  = time();
+    my $diff = $now - $last;
+    if ($diff < $spamSeconds) {
+        my $wait = $spamSeconds - $diff;
+        return "Please wait $wait seconds before sending another command.";
+    }
+
+    Logger::addEntry($logfile, $remoteIP, $device, $command . " " . $arguments);
+    if (!validCommand($command, $arguments, $device)) {
+        return "Disabled Command.";
+    }
+
+    if ($arguments ne "") {
+        $command = $command . " " . $arguments;
+    }
+
+    my $name     = $device->{'name'};
+    my $hostname = $device->{'address'};
+    my $method   = $device->{'method'};
+    my $username = $device->{'username'};
+    my $password = $device->{'password'};
+    my $type     = $device->{'type'};
+    my $port     = $device->{'port'};
+
+    # Fix encoding. I don't know why. This is legecy.
+    Encode::from_to($username, 'utf8', 'iso-8859-1');
+    Encode::from_to($password, 'utf8', 'iso-8859-1');
+
+    my $proxy = RouterProxy->new( hostname    => $hostname,
+                                  port        => $port,
+                                  username    => $username,
+                                  password    => $password,
+                                  method      => $method,
+                                  type        => $type,
+                                  maxlines    => $maxlines,
+                                  config_path => $config_path,
+                                  timeout     => $timeout
+                                );
+    my $result = $proxy->command($command);
+
+    # End the timer if the command was successful.
+    alarm(0);
+    return $result;
+}
+
+sub getError {
+    print $cgi->header(-type => "text/html",
+                       -status => "501" );
+    print "The requested method does not exist.";
+}
+
+sub makeHTML2 {
+    my $tt = Template->new({ ABSOLUTE => 1 });
+    my $input = "/gnoc/routerproxy/templates/index.tt";
+
+    # If $handler is defined outside the makeHTML2 subroutine an error
+    # is returned.
+    #
+    # Can't use string ("") as a subroutine ref while "strict refs" in
+    # use at /gnoc/routerproxy/webroot/index.cgi line 302.
+    my $handler = { device => \&getDevice,
+                    error  => \&getError,
+                    submit => \&getResponses
+                  };
+
+    # Check if a method has been called on this CGI.
+    my $method = $cgi->param('method');
+    if (defined $method) {
+        if (!defined  $handler->{$method}) {
+            $handler->{"error"}->();
+        } else {
+            $handler->{$method}->();
+        }
+        # HTML has been printed; Return.
+        return;
+    }
+
+    my $html = "";
+    my $vars = { network_name => $conf->NetworkName(),
+                 noc_mail     => $conf->NOCMail(),
+                 noc_name     => $conf->NOCName(),
+                 noc_site     => $conf->NOCSite(),
+                 groups       => $conf->DeviceGroups()
+               };
+    $tt->process($input, $vars, \$html);
+
+    print $cgi->header(-type => "text/html",
+                       -status => "200" );
+    print $html;
+    return;
 }
 
 sub getCienaMenuResponse {
@@ -867,24 +309,24 @@ sub getCienaMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
 
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use my TL1 module to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -918,7 +360,7 @@ sub getCienaMenuResponse {
     $result = retrCrs2(@rows);
   }
 
-  return ($result, "");
+  return $result;
 }
 
 sub getOnsMenuResponse {
@@ -934,24 +376,24 @@ sub getOnsMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
 
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use my TL1 module to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -978,13 +420,6 @@ sub getOnsMenuResponse {
     $result = retrCrs(@rows);
   }
 
-  # facilities cmd
-  #elsif ($cmd eq "facilities") {
-
-  #@rows = $tl1->getFacilities();
-  #$result = retrFac(@rows);
-  #}
-
   # inventory cmd
   elsif ($cmd eq "inventory") {
 
@@ -992,14 +427,7 @@ sub getOnsMenuResponse {
     $result = retrInv(@rows);
   }
 
-  # ip addresses cmd
-  #elsif ($cmd eq "ipAddresses") {
-
-  #@rows = $tl1->getIPInfo();
-  #$result = retrNeGen(@rows);
-  #}
-
-  return ($result, "");
+  return $result;
 }
 
 sub getOmeMenuResponse {
@@ -1015,24 +443,24 @@ sub getOmeMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
 
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use my TL1 module to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -1067,15 +495,7 @@ sub getOmeMenuResponse {
     # ons15454$result = retrInv(@rows);
   }
 
-  # ip addresses cmd
-  #elsif ($cmd eq "ipAddresses") {
-
-  #@rows = $tl1->getIPInfo();
-  #$result = retrIp2(@rows);
-  # ons15454$result = retrNeGen(@rows);
-  #}
-
-  return ($result, "");
+  return $result;
 }
 
 sub getHdxcMenuResponse {
@@ -1091,24 +511,23 @@ sub getHdxcMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
-
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use my TL1 module to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $hostname = $devices->{$device}->{'address'};
+  my $method = $devices->{$device}->{'method'};
+  my $username = $devices->{$device}->{'username'};
+  my $password = $devices->{$device}->{'password'};
+  my $type = $devices->{$device}->{'type'};
+  my $port = $devices->{$device}->{'port'};
 
   my $tl1 = GRNOC::TL1->new(
                             username => $username,
@@ -1151,23 +570,7 @@ sub getHdxcMenuResponse {
     }
   }
 
-  # ip addresses cmd
-  #elsif ($cmd eq "ipAddresses") {
-
-  #@rows = $tl1->getIPInfo();
-
-  #if ($type eq "hdxc") {
-  #   $result = retrIp(@rows);
-  #}
-  #elsif ($type eq "ome") {
-  #    $result = retrIp2(@rows);
-  #}
-  #else {
-  #    $result = retrNeGen(@rows);
-  #}
-  #}
-
-  return ($result, "");
+  return $result;
 }
 
 sub getIosMenuResponse {
@@ -1176,8 +579,7 @@ sub getIosMenuResponse {
   my $device = shift;
 
   if (!$hasIosXML) {
-
-    return ("IOS XR XML must be installed.", "");
+    return "IOS XR XML must be installed.";
   }
 
   my $result;
@@ -1187,25 +589,25 @@ sub getIosMenuResponse {
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
 
-      return ("Requested device is not configured.  Please reload the page.", "" );
+      return "Requested device is not configured.  Please reload the page.";
   }
 
   # use IOS XR XML to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $address = $devices->{$device}->{'address'}->[0];
+  my $name = $devices->{$device}->{'name'};
+  my $address = $devices->{$device}->{'address'};
 
   my $cisco = Cisco::IOS_XR->new(
                                  host => $address,
-                                 transport => $devices->{$device}->{'method'}->[0],
-                                 username => $devices->{$device}->{'username'}->[0],
-                                 password => $devices->{$device}->{'password'}->[0],
+                                 transport => $devices->{$device}->{'method'},
+                                 username => $devices->{$device}->{'username'},
+                                 password => $devices->{$device}->{'password'},
                                  connection_timeout => $timeout);
 
   if ($cmd eq "bgp") {
@@ -1288,7 +690,7 @@ sub getIosMenuResponse {
     $result = "<table class=\"no-border\"><tr class=\"menu-title\"><td>IPv6 Neighbors For $name</td></tr></table><br />" . ipv6Neighbors($result);
   }
 
-  return ($result, "");
+  return $result;
 }
 
 sub getMenuResponse {
@@ -1297,34 +699,33 @@ sub getMenuResponse {
   my $device = shift;
 
   if (!$hasJunoscript) {
-
     return ("Junoscript must be installed.", "");
   }
 
   my $result;
+  my $xml;
 
   my $last = Logger::getLastTime($logfile);
   my $now = time();
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
+    return "Please wait $wait seconds before sending another command.";
   }
   Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
-  if ( !defined( $devices->{$device} ) ) {
-
-      return ("Requested device is not configured.  Please reload the page.", "" );
+  if (!defined $device) {
+      return "Requested device $device is not configured. Please reload the page.";
   }
 
   # use JUNOSCRIPT to issue the command
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
+  my $name = $device->{'name'};
+  my $hostname = $device->{'address'};
+  my $method = $device->{'method'};
+  my $username = $device->{'username'};
+  my $password = $device->{'password'};
+  my $type = $device->{'type'};
 
   $username = encode("utf8", $username);
   $password = encode("utf8", $password);
@@ -1444,288 +845,59 @@ sub getMenuResponse {
     $result = "<table class=\"no-border\"><tr class=\"menu-title\"><td>Version For $name</td></tr></table><br />" . showVersion($xml);
   }
 
-  return ($result, "");
-}
-
-sub getResponse {
-
-  my $cmd = shift;
-  my $args = shift;
-
-  # I have no idea why I have to do this extra shift...
-  shift;
-
-  my $device = shift;
-
-  my $last = Logger::getLastTime($logfile);
-  my $now = time();
-  my $diff = $now - $last;
-  if ($diff < $spamSeconds) {
-    my $wait = $spamSeconds - $diff;
-    return ("Please wait $wait seconds before sending another command.", "");
-  }
-
-  # make sure the device exists in the config
-  if ( !defined( $devices->{$device} ) ) {
-
-      return ("Requested device is not configured.  Please reload the page.", "" );
-  }
-
-  Logger::addEntry($logfile, $remoteIP, $device, $cmd . " " . $args);
-
-  if (!validCommand($cmd, $args, $device)) {
-
-    return ("Disabled Command.", "");
-  }
-
-  if ($args ne "") {
-    $cmd = $cmd . " " . $args;
-  }
-
-  my $name = $devices->{$device}->{'name'}->[0];
-  my $hostname = $devices->{$device}->{'address'}->[0];
-  my $method = $devices->{$device}->{'method'}->[0];
-  my $username = $devices->{$device}->{'username'}->[0];
-  my $password = $devices->{$device}->{'password'}->[0];
-  my $type = $devices->{$device}->{'type'}->[0];
-  my $port = $devices->{$device}->{'port'}->[0];
-
-  # fix encoding
-  Encode::from_to($username, 'utf8', 'iso-8859-1');
-  Encode::from_to($password, 'utf8', 'iso-8859-1');
-
-  my $result = "
-<table class=\"no-border\">
-<tr class=\"menu-title\"><td>Response From $name</td></tr>
-<tr class=\"primary\">
-<td>
-<pre>";
-
-  my $proxy = RouterProxy->new(
-                               hostname => $hostname,
-                               port => $port,
-                               username => $username,
-                               password => $password,
-                               method => $method,
-                               type => $type,
-                               maxlines => $maxlines,
-                               config_path => $config_path,
-                               timeout => $timeout
-                              );
-
-  my $output = $proxy->command($cmd);
-
-  # end the timer if the command was successful
-  alarm(0);
-
-  $result .= $output;
-  $result .= "
-</pre>
-</td>
-</tr>
-</table>
-";
-
-  return ($result, "");
-}
-
-sub getDevices {
-
-  my $xml = shift;
-
-  my $results = {};
-
-  my $devices = $xml->{'device'};
-
-  foreach my $device ( @$devices ) {
-
-      my $address = $device->{'address'}[0];
-
-      $results->{$address} = $device;
-  }
-
-  return $results;
-}
-
-sub parseRouters {
-
-    my @result;
-    my $i = 0;
-    
-    my @hostnames = keys( %$devices );
-    
-    foreach my $hostname ( @hostnames ) {
-	
-	my $device = $devices->{$hostname};
-	my $layer = $device->{'layer'}->[0];
-	
-	if ($layer == 3) {
-	    
-	    $result[$i++] = $device;
-	}
-    }
-    
-    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
-}
-
-sub parseSwitches {
-
-    my @result;
-    my $i = 0;
-
-    my @hostnames = keys( %$devices );
-
-    foreach my $hostname ( @hostnames ) {
-
-        my $device = $devices->{$hostname};
-        my $layer = $device->{'layer'}->[0];
-
-        if ($layer == 2) {
-
-            $result[$i++] = $device;
-	}
-    }
-
-    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
-}
-
-sub parseOpticals {
-
-    my @result;
-    my $i = 0;
-
-    my @hostnames = keys( %$devices );
-
-    foreach my $hostname ( @hostnames ) {
-
-        my $device = $devices->{$hostname};
-        my $layer = $device->{'layer'}->[0];
-
-        if ($layer == 1) {
-
-            $result[$i++] = $device;
-	}
-    }
-
-    return sort { $a->{'name'}[0] cmp $b->{'name'}[0] } @result;
+  return $result;
 }
 
 sub validCommand {
+    my $command = shift;
+    my $args    = shift;
+    my $device  = shift;
+    my $type    = $device->{"type"};
 
-  my $command = shift;
-  my $args = shift;
-  my $device = shift;
-  my $os = "";
+    # Do not allow non alphanumeric-ish chars. This prevents circumventing
+    # multiple / altered commands.
+    if ($command =~ /[\x00-\x1f]/ || $command =~ /\x7f/ ||
+        $args =~ /[\x00-\x1f]/ || $args =~ /\x7f/) {
+        return 0;
+    }
 
-  # dont allow non alphanumeric-ish chars (to prevent circumventing multiple/altered commands)
-  if ($command =~ /[\x00-\x1f]/ || $command =~ /\x7f/ ||
-      $args =~ /[\x00-\x1f]/ || $args =~ /\x7f/) {
-      return 0;
-  }
+    # Do not allow piping to other commands.
+    if ($args =~ m/\|/) {
+        return 0;
+    }
 
-  # dont allow piping to other commands
-  if ($args =~ m/\|/) {
-   
+    # Do not allow regexp due to IOS vulnerability.
+    if ($args =~ m/regexp/i) {
+        return 0;
+    }
+
+    if ($args ne "") {
+        $command = $command . " " . $args;
+    }
+
+    my $validCommands   = $conf->DeviceCommands($device->{"name"});
+    my $excludeCommands = $conf->DeviceExcludeCommands($device->{"name"});
+
+    # First check to see if this command matches one of the deliberately
+    # exluded ones.
+    foreach my $excludeCommand (@{$excludeCommands}) {
+        if ($command =~ /$excludeCommand/) {
+            return 0;
+        }
+    }
+
+    foreach my $validCommand (@{$validCommands}) {
+        # For layer2/3, accept anything which has the prefix of a valid
+        # command.
+        if ($type eq "ciena" || $type eq "hdxc" || $type eq "ons15454" || $type eq "ome") {
+            return 1 if ($command eq $validCommand);
+        } else {
+            $validCommand = "^$validCommand";
+            return 1 if ($command =~ m/$validCommand/);
+        }
+    }
+
     return 0;
-  }
-
-  # dont allow regexp due to IOS vulnerability
-  if ($args =~ m/regexp/i) {
-   
-    return 0;
-  }
-
-  if ($args ne "") {
-    $command = $command . " " . $args;
-  }
-
-  my $type = $devices->{$device}->{'type'}->[0];
-  if ($type eq "junos") {
-
-    $os = "junos-commands";
-  }
-
-  elsif ($type eq "ios") {
-
-    $os = "ios-commands";
-  }
-
-  elsif ($type eq "ios6509") {
-
-    $os = "ios6509-commands";
-  }
-  elsif ($type eq "ios2") {
-
-    $os = "ios2-commands";
-  }
-  elsif ($type eq "iosxr") {
-
-    $os = "iosxr-commands";
-  }
-
-  elsif ($type eq "nx-os") {
-
-    $os = "nx-os-commands";
-  }
-
-  elsif ($type eq "ome") {
-
-    $os = "ome-commands";
-  }
-
-  elsif ($type eq "ons15454") {
-
-    $os = "ons15454-commands";
-  }
-
-  elsif ($type eq "hdxc") {
-
-    $os = "hdxc-commands";
-  }
-
-  elsif ($type eq "ciena") {
-
-    $os = "ciena-commands";
-  }
-
-  elsif ($type eq "force10") {
-
-    $os = "force10-commands";
-  }
-
-  elsif ($type eq "hp") {
-
-    $os = "hp-commands";
-}elsif($type eq "brocade"){
-    $os = "brocade-commands";
-}
-  
-  my $validCommands   = $xml->{$os}->[0]->{'command'};
-  my $excludeCommands = $xml->{$os}->[0]->{'exclude'};
-
-  # first check to see if this command matches one of the deliberately exluded ones
-  foreach my $excludeCommand (@$excludeCommands) {
-
-    if ($command =~ /$excludeCommand/) {
-      return 0;
-    }
-
-  }
-
-  foreach my $validCommand (@$validCommands) {
-
-    # for layer2/3, accept anything which has the prefix of a valid command
-    if ($type eq "ciena" || $type eq "hdxc" || $type eq "ons15454" || $type eq "ome") {
-
-      return 1 if ($command eq $validCommand);
-    }
-    else {
-      $validCommand = "^$validCommand";
-      return 1 if ($command =~ m/$validCommand/);
-    }
-  }
-
-  return 0;
 }
 
 sub _parseLocationData {
