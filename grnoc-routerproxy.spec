@@ -47,11 +47,11 @@ rm -rf $RPM_BUILD_ROOT
 %{__install} lib/Logger.pm %{buildroot}/gnoc/routerproxy/lib/
 %{__install} lib/RouterProxy.pm %{buildroot}/gnoc/routerproxy/lib/
 %{__install} lib/RouterProxyConfig.pm %{buildroot}/gnoc/routerproxy/lib/
-%{__install} -d -p %{buildroot}/usr/share/perl5/vendor_perl/GRNOC/RouterProxy/
-%{__install} lib/Commands.pm %{buildroot}/usr/share/perl5/vendor_perl/GRNOC/RouterProxy/
-%{__install} lib/Logger.pm %{buildroot}/usr/share/perl5/vendor_perl/GRNOC/RouterProxy/
-%{__install} lib/RouterProxy.pm %{buildroot}/usr/share/perl5/vendor_perl/GRNOC/RouterProxy/
-%{__install} lib/RouterProxyConfig.pm %{buildroot}/usr/share/perl5/vendor_perl/GRNOC/RouterProxy/
+%{__install} -d -p %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
+%{__install} lib/Commands.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
+%{__install} lib/Logger.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
+%{__install} lib/RouterProxy.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
+%{__install} lib/RouterProxyConfig.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
 %{__install} webroot/index.cgi %{buildroot}/gnoc/routerproxy/webroot/
 %{__install} webroot/style.css %{buildroot}/gnoc/routerproxy/webroot/
 %{__install} webroot/routerproxy.js %{buildroot}/gnoc/routerproxy/webroot/
