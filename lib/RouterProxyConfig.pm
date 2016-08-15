@@ -27,6 +27,7 @@ sub New {
     if (index($path, ".xml") != -1 || index($path, ".conf") != -1) {
         $self->loadXML($path);
     } else {
+        $self->{'path'} = $path;
         $self->loadYAML($path);
     }
 
@@ -217,6 +218,13 @@ Saves YAML to file.
 sub Save {
     my $self = shift;
     my $path = shift;
+    if (!defined $path) {
+        if (!defined $self->{'path'}) {
+            return 0;
+        } else {
+            $path = $self->{'path'};
+        }
+    }
 
     my $result = {};
 
@@ -240,8 +248,8 @@ sub Save {
     foreach my $device (@{$devices}) {
         my $new = { name => $device->{'name'},
                     address => $device->{'address'},
-                    city => $device->{'address'},
-                    device_group => $device->{'address'},
+                    city => $device->{'city'},
+                    device_group => $device->{'device_group'},
                     method => $device->{'method'},
                     password => $device->{'password'},
                     state => $device->{'state'},
@@ -295,6 +303,26 @@ sub Device {
     return $self->{'device'}->{$name};
 }
 
+sub PutDevice {
+    my $self = shift;
+    my $data = shift;
+
+    my $name = $data->{'name'};
+
+    if (!defined $self->{'device'}->{$name}) {
+        $self->{'device'}->{$name} = $data;
+        $self->{'device'}->{$name}->{'position'} = 0;
+    } else {
+        foreach my $k (keys %{$self->{'device'}->{$name}}) {
+            if (defined $data->{$k}) {
+                $self->{'device'}->{$name}->{$k} = $data->{$k};
+            }
+        }
+    }
+
+    return 1;
+}
+
 =head2 Devices
 
 Returns a copy of the devices in this config as a hash.
@@ -331,6 +359,22 @@ sub DeviceGroups {
         push(@{$result}, $self->{'device_group'}->{$name});
     }
     return $result;
+}
+
+sub PutDeviceGroup {
+    my $self = shift;
+    my $name = shift;
+
+    if (defined $self->{'device_group'}->{$name}) {
+        # Device group already exists.
+        return 0;
+    }
+
+    $self->{'device_group'}->{$name} = { name => $name,
+                                         description => '',
+                                         devices => [],
+                                         display => 1,
+                                         position => 0 };
 }
 
 =head2 DeviceCommands
