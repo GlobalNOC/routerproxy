@@ -47,7 +47,7 @@ my $device_groups = $config->DeviceGroups();
 my $device_groups_count = @{$device_groups};
 ok($device_groups_count == 3, "Got $device_groups_count device groups.");
 
-my $device = $config->Device("some switch");
+my $device = $config->Device("127.0.0.1");
 ok($device->{'name'} eq "some switch", "Got expected device name.");
 ok($device->{'username'} eq "some username", "Got expected device username.");
 ok($device->{'state'} eq "IN", "Got expected device state.");
@@ -58,7 +58,7 @@ ok($device->{'address'} eq "127.0.0.1", "Got expected device address.");
 ok($device->{'method'} eq "ssh", "Got expected device method.");
 ok($device->{'type'} eq "hp", "Got expected device type.");
 
-my $commands = $config->DeviceCommands("some switch");
+my $commands = $config->DeviceCommands("127.0.0.1");
 my $command_count = @{$commands};
 ok($command_count == 7, "Got $command_count device commands.");
 
@@ -70,7 +70,7 @@ ok($commands_in_group_count == 7, "Got $commands_in_group_count commands.");
 #my $commands_not_in_group_count = @{$commands_not_in_group};
 #ok($commands_not_in_group_count == 1, "Got $commands_not_in_group_count commands.");
 
-my $commands_not_for_device = $config->DeviceExcludeCommands("some switch");
+my $commands_not_for_device = $config->DeviceExcludeCommands("127.0.0.1");
 my $commands_not_for_device_count = @{$commands_not_for_device};
 ok($commands_not_for_device_count == 1, "Got $commands_not_for_device excluded commands for some switch.");
 
