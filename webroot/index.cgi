@@ -136,7 +136,7 @@ sub getDevice {
         return;
     }
 
-    $data->{"commands"}    = $conf->DeviceCommands($data->{"name"});
+    $data->{"commands"}    = $conf->DeviceCommands($data->{"address"});
     $data->{"enable_menu"} = $global_enable_menu_commands;
 
     delete $data->{"username"};
@@ -875,8 +875,8 @@ sub validCommand {
         $command = $command . " " . $args;
     }
 
-    my $validCommands   = $conf->DeviceCommands($device->{"name"});
-    my $excludeCommands = $conf->DeviceExcludeCommands($device->{"name"});
+    my $validCommands   = $conf->DeviceCommands($device->{"address"});
+    my $excludeCommands = $conf->DeviceExcludeCommands($device->{"address"});
 
     # First check to see if this command matches one of the deliberately
     # exluded ones.

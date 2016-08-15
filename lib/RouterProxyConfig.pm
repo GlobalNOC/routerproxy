@@ -136,7 +136,7 @@ sub loadXML {
         $_device->{'exclude_group'} = [ 'ex-' . $_command_group ];
         
         # Add configured device to the device hash.
-        $self->{'device'}->{ $_device->{'name'} } = $_device;
+        $self->{'device'}->{ $_device->{'address'} } = $_device;
 
         # Add configured device to the proper device group.
         if ($_device->{'device_group'} == 1) {
@@ -194,8 +194,8 @@ sub loadYAML {
     $position = 0;
     $self->{'device'} = {};
     foreach my $device (@{$yaml->{'device'}}) {
-        $self->{'device'}->{$device->{'name'}} = $device;
-        $self->{'device'}->{$device->{'name'}}->{'position'} = $position;
+        $self->{'device'}->{$device->{'address'}} = $device;
+        $self->{'device'}->{$device->{'address'}}->{'position'} = $position;
         $position = $position + 1;
     
         # Ensure that a list is defined for exclude commands.
@@ -204,9 +204,9 @@ sub loadYAML {
         }
         
         # Associate device with its device group.
-        my $name = $self->{'device'}->{$device->{'name'}}->{'device_group'};
+        my $name = $self->{'device'}->{$device->{'address'}}->{'device_group'};
         push(@{$self->{'device_group'}->{$name}->{'devices'}},
-             $self->{'device'}->{$device->{'name'}});
+             $self->{'device'}->{$device->{'address'}});
     }
 }
 
@@ -293,7 +293,7 @@ sub CommandsInGroup {
 
 =head2 Device
 
-Returns the device named $name.
+Returns the device with address $name.
 
 =cut
 sub Device {
@@ -307,7 +307,7 @@ sub PutDevice {
     my $self = shift;
     my $data = shift;
 
-    my $name = $data->{'name'};
+    my $name = $data->{'address'};
 
     if (!defined $self->{'device'}->{$name}) {
         $self->{'device'}->{$name} = $data;
