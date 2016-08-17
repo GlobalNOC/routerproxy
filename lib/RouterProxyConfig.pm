@@ -65,11 +65,11 @@ sub loadXML {
     $self->{'frontend'}->{'noc_mail'}     = $xml->{'email'}->[0];
     $self->{'frontend'}->{'help'}         = $xml->{'command-help'}->[0];
     
-    $self->{'general'}->{'logging'}                    = $xml->{'log-file'}->[0];
+    $self->{'general'}->{'logging'}       = $xml->{'log-file'}->[0];
 
-    $self->{'general'}->{'max_lines'}         = $xml->{'max-lines'}->[0];
-    $self->{'general'}->{'max_timeout'}       = $xml->{'timeout'}->[0];
-    $self->{'general'}->{'max_rate'}          = $xml->{'spam-seconds'}->[0];
+    $self->{'general'}->{'max_lines'}     = $xml->{'max-lines'}->[0];
+    $self->{'general'}->{'max_timeout'}   = $xml->{'timeout'}->[0];
+    $self->{'general'}->{'max_rate'}      = $xml->{'spam-seconds'}->[0];
 
     $self->{'general'}->{'redact'}                     = [];
     if (defined $xml->{'redact-stanzas'} && defined $xml->{'redact-stanzas'}->[0]) {
