@@ -23,12 +23,17 @@
         <tr class="menu-title" onclick="toggle('[% group.name %]');"><td colspan="3">[% group.name %]</td></tr>
       </table>
       <table id='[% group.name %]' style='display: table'>
+        [% FOREACH device = group.devices -%]
+        [% IF loop.index % 3 == 0 %]
         <tr class="primary">
-          [% FOREACH device = group.devices -%]
-          <td><input name="host_radio" id="[% device.name %]" type="radio" value="[% device.name %]" onchange="loadCommands(this)" />
+        [% END %]
+          <td><input name="host_radio" id="[% device.address %]" type="radio" value="[% device.address %]" onchange="loadCommands(this)"/>
             [% device.name %] [% IF device.city || device.state %]([% device.city %][% IF device.city && device.state %], [% ELSE %][% END %][% device.state %])[% END %]
-          </input></td>
-          [%- END %]
+          </td>
+        [% IF loop.index % 3 == 2 %]
+        </tr>
+        [% END %]
+        [%- END %]
         </tr>
       </table>
     </div><br/>

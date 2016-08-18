@@ -27,6 +27,7 @@ sub New {
     if (index($path, ".xml") != -1 || index($path, ".conf") != -1) {
         $self->loadXML($path);
     } else {
+        $self->{'path'} = $path;
         $self->loadYAML($path);
     }
 
@@ -57,18 +58,18 @@ sub loadXML {
                                 'ome-commands'      => [],
                                 'ons15454-commands' => []};
 
-    $self->{'frontend'}->{'dropdown'}     = $xml->{'enable-menu-commands'}->[0];
+    $self->{'frontend'}->{'dropdown'}     = $xml->{'enable-menu-commands'}->[0] || 0;
     $self->{'frontend'}->{'network_name'} = $xml->{'network'}->[0];
     $self->{'frontend'}->{'noc_name'}     = $xml->{'noc'}->[0];
     $self->{'frontend'}->{'noc_site'}     = $xml->{'noc-website'}->[0];
     $self->{'frontend'}->{'noc_mail'}     = $xml->{'email'}->[0];
-    $self->{'frontend'}->{'help'}         = $xml->{'command-help'}->[0];
+    $self->{'frontend'}->{'help'}         = $xml->{'command-help'}->[0] || '';
     
-    $self->{'general'}->{'logging'}                    = $xml->{'log-file'}->[0];
+    $self->{'general'}->{'logging'}       = $xml->{'log-file'}->[0];
 
-    $self->{'general'}->{'max_lines'}         = $xml->{'max-lines'}->[0];
-    $self->{'general'}->{'max_timeout'}       = $xml->{'timeout'}->[0];
-    $self->{'general'}->{'max_rate'}          = $xml->{'spam-seconds'}->[0];
+    $self->{'general'}->{'max_lines'}     = $xml->{'max-lines'}->[0];
+    $self->{'general'}->{'max_timeout'}   = $xml->{'timeout'}->[0];
+    $self->{'general'}->{'max_rate'}      = $xml->{'spam-seconds'}->[0];
 
     $self->{'general'}->{'redact'}                     = [];
     if (defined $xml->{'redact-stanzas'} && defined $xml->{'redact-stanzas'}->[0]) {
@@ -135,7 +136,7 @@ sub loadXML {
         $_device->{'exclude_group'} = [ 'ex-' . $_command_group ];
         
         # Add configured device to the device hash.
-        $self->{'device'}->{ $_device->{'name'} } = $_device;
+        $self->{'device'}->{ $_device->{'address'} } = $_device;
 
         # Add configured device to the proper device group.
         if ($_device->{'device_group'} == 1) {
@@ -193,8 +194,8 @@ sub loadYAML {
     $position = 0;
     $self->{'device'} = {};
     foreach my $device (@{$yaml->{'device'}}) {
-        $self->{'device'}->{$device->{'name'}} = $device;
-        $self->{'device'}->{$device->{'name'}}->{'position'} = $position;
+        $self->{'device'}->{$device->{'address'}} = $device;
+        $self->{'device'}->{$device->{'address'}}->{'position'} = $position;
         $position = $position + 1;
     
         # Ensure that a list is defined for exclude commands.
@@ -203,9 +204,9 @@ sub loadYAML {
         }
         
         # Associate device with its device group.
-        my $name = $self->{'device'}->{$device->{'name'}}->{'device_group'};
+        my $name = $self->{'device'}->{$device->{'address'}}->{'device_group'};
         push(@{$self->{'device_group'}->{$name}->{'devices'}},
-             $self->{'device'}->{$device->{'name'}});
+             $self->{'device'}->{$device->{'address'}});
     }
 }
 
@@ -217,6 +218,13 @@ Saves YAML to file.
 sub Save {
     my $self = shift;
     my $path = shift;
+    if (!defined $path) {
+        if (!defined $self->{'path'}) {
+            return 0;
+        } else {
+            $path = $self->{'path'};
+        }
+    }
 
     my $result = {};
 
@@ -240,8 +248,8 @@ sub Save {
     foreach my $device (@{$devices}) {
         my $new = { name => $device->{'name'},
                     address => $device->{'address'},
-                    city => $device->{'address'},
-                    device_group => $device->{'address'},
+                    city => $device->{'city'},
+                    device_group => $device->{'device_group'},
                     method => $device->{'method'},
                     password => $device->{'password'},
                     state => $device->{'state'},
@@ -285,7 +293,7 @@ sub CommandsInGroup {
 
 =head2 Device
 
-Returns the device named $name.
+Returns the device with address $name.
 
 =cut
 sub Device {
@@ -293,6 +301,26 @@ sub Device {
     my $name = shift;
 
     return $self->{'device'}->{$name};
+}
+
+sub PutDevice {
+    my $self = shift;
+    my $data = shift;
+
+    my $name = $data->{'address'};
+
+    if (!defined $self->{'device'}->{$name}) {
+        $self->{'device'}->{$name} = $data;
+        $self->{'device'}->{$name}->{'position'} = 0;
+    } else {
+        foreach my $k (keys %{$self->{'device'}->{$name}}) {
+            if (defined $data->{$k}) {
+                $self->{'device'}->{$name}->{$k} = $data->{$k};
+            }
+        }
+    }
+
+    return 1;
 }
 
 =head2 Devices
@@ -331,6 +359,22 @@ sub DeviceGroups {
         push(@{$result}, $self->{'device_group'}->{$name});
     }
     return $result;
+}
+
+sub PutDeviceGroup {
+    my $self = shift;
+    my $name = shift;
+
+    if (defined $self->{'device_group'}->{$name}) {
+        # Device group already exists.
+        return 0;
+    }
+
+    $self->{'device_group'}->{$name} = { name => $name,
+                                         description => '',
+                                         devices => [],
+                                         display => 1,
+                                         position => 0 };
 }
 
 =head2 DeviceCommands
