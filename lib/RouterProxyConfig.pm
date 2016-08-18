@@ -58,12 +58,12 @@ sub loadXML {
                                 'ome-commands'      => [],
                                 'ons15454-commands' => []};
 
-    $self->{'frontend'}->{'dropdown'}     = $xml->{'enable-menu-commands'}->[0];
+    $self->{'frontend'}->{'dropdown'}     = $xml->{'enable-menu-commands'}->[0] || 0;
     $self->{'frontend'}->{'network_name'} = $xml->{'network'}->[0];
     $self->{'frontend'}->{'noc_name'}     = $xml->{'noc'}->[0];
     $self->{'frontend'}->{'noc_site'}     = $xml->{'noc-website'}->[0];
     $self->{'frontend'}->{'noc_mail'}     = $xml->{'email'}->[0];
-    $self->{'frontend'}->{'help'}         = $xml->{'command-help'}->[0];
+    $self->{'frontend'}->{'help'}         = $xml->{'command-help'}->[0] || '';
     
     $self->{'general'}->{'logging'}       = $xml->{'log-file'}->[0];
 
