@@ -11,6 +11,7 @@ BuildArch: noarch
 Requires: httpd
 Requires: openssh-clients
 Requires: perl >= 5.8.8
+Requires: perl-Template-Toolkit
 Requires: perl(XML::Parser)
 Requires: perl(XML::Simple)
 Requires: perl(CGI::Ajax)
@@ -21,6 +22,8 @@ Requires: perl(GRNOC::TL1)
 Requires: perl(GRNOC::Config)
 Requires: perl(Class::Accessor)
 Requires: perl(YAML)
+Requires: perl(JSON)
+
 BuildRequires: tar
 AutoReqProv: no
 
