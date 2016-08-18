@@ -21,6 +21,9 @@ Requires: perl(GRNOC::TL1)
 Requires: perl(GRNOC::Config)
 Requires: perl(Class::Accessor)
 Requires: perl(YAML)
+Requires: perl(Template-Toolkit)
+Requires: perl(JSON)
+
 BuildRequires: tar
 AutoReqProv: no
 
