@@ -31,13 +31,13 @@ function loadCommands(obj) {
             }
 
             // Clear existing menus
-            const menus = document.getElementsByClassName('menu-table');
-            for (let i = 0; i < menus.length; i++) {
+            var menus = document.getElementsByClassName('menu-table');
+            for (i = 0; i < menus.length; i++) {
                 menus[i].style.display = 'none';
             }
 
             if (data.enable_menu == 1) {
-                const ul = document.getElementById(data.type + '_menu');
+                var ul = document.getElementById(data.type + '_menu');
                 if (ul != null) { // Not all device types have a menu.
                     ul.style.display = 'table';
                 }
@@ -52,6 +52,7 @@ function loadCommands(obj) {
 // one cannot be found.
 function selectedDevice() {
     var devices = document.getElementsByName("host_radio");
+    var i;
 
     for (i = 0; devices.length > i; i++) {
         if (devices[i].checked) {
@@ -66,67 +67,92 @@ function selectedDevice() {
 // Return the value of the currently selected command, or null if one is
 // not selected.
 function selectedCommand() {
-    const select = document.getElementById("host_command_select");
+    var select = document.getElementById("host_command_select");
     return select.options[select.selectedIndex].value;
 }
 
+function showMessage(s) {
+    var wrapper = document.getElementById("result");
+    wrapper.style.display = 'block';
+
+    var title = document.getElementById("result_title");
+    title.innerHTML = s;
+
+    var pre = document.getElementById("result_pre");
+    pre.innerHTML = '';
+
+    var tbl = document.getElementById("menu_result");
+    tbl.style.display = 'none';
+}
+
 function submitCommand() {
-    const d = selectedDevice();
-    let url = '?method=submit';
-    url = url + '&device='  + d;
+    var d = selectedDevice();
+    var url = '?method=submit';
+    url = url + '&device=' + d;
     url = url + '&command=' + selectedCommand();
     url = url + '&menu=0';
 
-    const args = document.getElementById("host_command_text");
+    showMessage('Waiting on: ' + d);
+
+    var args = document.getElementById("host_command_text");
     if (args != null && args != '') {
         url = url + '&arguments=' + args.value;
     }
     
-    const req = new XMLHttpRequest();
+    var req = new XMLHttpRequest();
     req.onreadystatechange = function() {
-        // TODO Fix http response status code.
         if (req.readyState == 4 && req.status == 200) {
-            const wrapper = document.getElementById("result");
+            var wrapper = document.getElementById("result");
             wrapper.style.display = 'block';
             
-            const title = document.getElementById("result_title");
+            var title = document.getElementById("result_title");
             title.innerHTML = 'Response from: ' + d;
 
-            const pre = document.getElementById("result_pre");
+            var pre = document.getElementById("result_pre");
             pre.innerHTML = req.responseText;
 
-            const tbl = document.getElementById("menu_result");
+            var tbl = document.getElementById("menu_result");
             tbl.style.display = 'none';
             tbl.innerHTML = '';
+        } else if (req.readyState == 4) {
+            showMessage('Error: ' + req.responseText);
         }
-    }
+    };
 
     req.open("GET", url, true);
+    req.timeout = 60000;
+    req.ontimeout = function() { showMessage('Request timeout: ' + d); };
     req.send(null);
 }
 
 function submitMenuCommand(command) {
-    let url = '?method=submit';
-    url = url + '&device=' + selectedDevice();
+    var d = selectedDevice();
+    var url = '?method=submit';
+    url = url + '&device=' + d;
     url = url + '&command=' + command;
     url = url + '&menu=1';
 
-    const req = new XMLHttpRequest();
+    showMessage('Waiting on: ' + d);
+
+    var req = new XMLHttpRequest();
     req.onreadystatechange = function() {
-        // TODO Fix http response status code.
         if (req.readyState == 4 && req.status == 200) {
-            const wrapper = document.getElementById("result");
+            var wrapper = document.getElementById("result");
             wrapper.style.display = 'none';
 
-            const pre = document.getElementById("result_pre");
+            var pre = document.getElementById("result_pre");
             pre.innerHTML = '';
 
-            const tbl = document.getElementById("menu_result");
+            var tbl = document.getElementById("menu_result");
             tbl.style.display = 'block';
             tbl.innerHTML = req.responseText;
+        } else if (req.readyState == 4) {
+            showMessage('Error: ' + req.responseText);
         }
-    }
+    };
 
     req.open("GET", url, true);
+    req.timeout = 60000;
+    req.ontimeout = function() { showMessage('Request timeout: ' + d); };
     req.send(null);    
 }
