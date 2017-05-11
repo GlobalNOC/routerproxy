@@ -4,7 +4,7 @@ use warnings;
 use Data::Dumper;
 use FindBin;
 use RouterProxyConfig;
-use Test::More tests => 26;
+use Test::More tests => 27;
 
 my $path   = "$FindBin::Bin/conf/test.yaml";
 my $config = RouterProxyConfig->New($path);
@@ -58,7 +58,13 @@ ok($device->{'address'} eq "127.0.0.1", "Got expected device address.");
 ok($device->{'method'} eq "ssh", "Got expected device method.");
 ok($device->{'type'} eq "hp", "Got expected device type.");
 
-my $commands = $config->DeviceCommands("127.0.0.1");
+$device->{'new_address'} = "127.0.0.2";
+$config->PutDevice($device);
+
+$device = $config->Device("127.0.0.2");
+ok($device->{'name'} eq "some switch", "Got expected device name.");
+
+my $commands = $config->DeviceCommands("127.0.0.2");
 my $command_count = @{$commands};
 ok($command_count == 7, "Got $command_count device commands.");
 
@@ -70,7 +76,7 @@ ok($commands_in_group_count == 7, "Got $commands_in_group_count commands.");
 #my $commands_not_in_group_count = @{$commands_not_in_group};
 #ok($commands_not_in_group_count == 1, "Got $commands_not_in_group_count commands.");
 
-my $commands_not_for_device = $config->DeviceExcludeCommands("127.0.0.1");
+my $commands_not_for_device = $config->DeviceExcludeCommands("127.0.0.2");
 my $commands_not_for_device_count = @{$commands_not_for_device};
 ok($commands_not_for_device_count == 1, "Got $commands_not_for_device excluded commands for some switch.");
 

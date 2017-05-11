@@ -3,18 +3,17 @@ package RouterProxyConfig;
 use strict;
 use warnings;
 
-use FindBin;
-use lib "$FindBin::Bin/../lib";
-
+use Log::Log4perl;
 use XML::Simple;
 use YAML;
 
 sub New {
     my $class = shift;
-    my $path  = shift;
-    my $self  = {};
+    my $self  = {
+        log  => Log::Log4perl->get_logger('GRNOC.RouterProxy.Config'),
+        path => shift
+    };
 
-    # Bless the self hash and class
     bless $self, $class;
 
     $self->{'command_group'} = {};
@@ -24,11 +23,10 @@ sub New {
     $self->{'general'}->{'logging'}       = "";
     $self->{'maximum'}       = {};
 
-    if (index($path, ".xml") != -1 || index($path, ".conf") != -1) {
-        $self->loadXML($path);
+    if (index($self->{'path'}, ".xml") != -1 || index($self->{'path'}, ".conf") != -1) {
+        $self->loadXML($self->{'path'});
     } else {
-        $self->{'path'} = $path;
-        $self->loadYAML($path);
+        $self->loadYAML();
     }
 
     return $self;
@@ -42,6 +40,8 @@ Loads configuration from a deprecated XML file.
 sub loadXML {
     my $self = shift;
     my $path = shift;
+
+    $self->{'log'}->info("Loading xml configuration from $self->{'path'}.");
 
     my $xml = XMLin($path, forcearray => 1);
 
@@ -64,7 +64,7 @@ sub loadXML {
     $self->{'frontend'}->{'noc_site'}     = $xml->{'noc-website'}->[0];
     $self->{'frontend'}->{'noc_mail'}     = $xml->{'email'}->[0];
     $self->{'frontend'}->{'help'}         = $xml->{'command-help'}->[0] || '';
-    
+
     $self->{'general'}->{'logging'}       = $xml->{'log-file'}->[0];
 
     $self->{'general'}->{'max_lines'}     = $xml->{'max-lines'}->[0];
@@ -173,10 +173,11 @@ Loads configuration from a JSON file.
 =cut
 sub loadYAML {
     my $self = shift;
-    my $path = shift;
 
-    my $yaml = YAML::LoadFile($path);
-    
+    $self->{'log'}->info("Loading yaml configuration from $self->{'path'}.");
+
+    my $yaml = YAML::LoadFile($self->{'path'});
+
     $self->{'frontend'} = $yaml->{'frontend'};
     $self->{'general'}  = $yaml->{'general'};
 
@@ -197,12 +198,12 @@ sub loadYAML {
         $self->{'device'}->{$device->{'address'}} = $device;
         $self->{'device'}->{$device->{'address'}}->{'position'} = $position;
         $position = $position + 1;
-    
+
         # Ensure that a list is defined for exclude commands.
         if (!defined $device->{"exclude_group"}) {
             $device->{"exclude_group"} = [];
         }
-        
+
         # Associate device with its device group.
         my $name = $self->{'device'}->{$device->{'address'}}->{'device_group'};
         push(@{$self->{'device_group'}->{$name}->{'devices'}},
@@ -232,7 +233,6 @@ sub Save {
     $result->{'general'}       = $self->{'general'};
     $result->{'command_group'} = $self->{'command_group'};
 
-    
     $result->{'device_group'} = [];
     my $groups = $self->DeviceGroups();
     foreach my $group (@{$groups}) {
@@ -246,6 +246,10 @@ sub Save {
     $result->{'device'} = [];
     my $devices = $self->SortedDevices();
     foreach my $device (@{$devices}) {
+        if (!defined $device->{'external_id'}) {
+            $device->{'external_id'} = -1;
+        }
+
         my $new = { name => $device->{'name'},
                     address => $device->{'address'},
                     city => $device->{'city'},
@@ -256,7 +260,8 @@ sub Save {
                     type => $device->{'type'},
                     username => $device->{'username'},
                     command_group => $device->{'command_group'},
-                    exclude_group  => $device->{'exclude_group'}
+                    exclude_group  => $device->{'exclude_group'},
+                    external_id    => $device->{'external_id'}
                   };
         push(@{$result->{'device'}}, $new);
     }
@@ -303,21 +308,78 @@ sub Device {
     return $self->{'device'}->{$name};
 }
 
+=head2 DeviceByExternalId
+
+Returns the device with external id $external_id.
+
+=cut
+sub DeviceByExternalId {
+    my $self        = shift;
+    my $external_id = shift;
+
+    foreach my $addr (keys %{$self->{'device'}}) {
+        my $device = $self->{'device'}->{$addr};
+        if ($device->{'external_id'} == $external_id) {
+            return $device;
+        }
+    }
+
+    return undef;
+}
+
+=head2 PutDevice
+
+If the device already exists and new_address is in data. Data will be
+reindexed under new_address.
+
+    {
+        name          => $device->{'name'}
+        address       => $device->{'address'}
+        new_address   => $device->{'new_address'}
+        city          => $device->{'city'}
+        device_group  => $device->{'device_group'}
+        method        => $device->{'method'}
+        password      => $device->{'password'}
+        state         => $device->{'state'}
+        type          => $device->{'type'}
+        username      => $device->{'username'}
+        command_group => $device->{'command_group'}
+        exclude_group => $device->{'exclude_group'}
+        external_id   => $device->{'external_id'}
+    }
+
+=cut
+
 sub PutDevice {
     my $self = shift;
     my $data = shift;
 
     my $name = $data->{'address'};
+    my $new_address = $data->{'new_address'};
 
     if (!defined $self->{'device'}->{$name}) {
         $self->{'device'}->{$name} = $data;
         $self->{'device'}->{$name}->{'position'} = 0;
-    } else {
-        foreach my $k (keys %{$self->{'device'}->{$name}}) {
-            if (defined $data->{$k}) {
-                $self->{'device'}->{$name}->{$k} = $data->{$k};
-            }
+
+        if (defined $self->{'device'}->{$name}->{'new_address'}) {
+            delete $self->{'device'}->{$name}->{'new_address'};
         }
+
+        return 1;
+    }
+
+    foreach my $k (keys %{$self->{'device'}->{$name}}) {
+        if (defined $data->{$k}) {
+            $self->{'device'}->{$name}->{$k} = $data->{$k};
+        }
+    }
+
+    if (defined $new_address && ($new_address ne $name)) {
+        $self->{'log'}->info("New address $new_address for $name received.");
+        $self->{'device'}->{$new_address} = $self->{'device'}->{$name};
+        $self->{'device'}->{$new_address}->{'address'} = $new_address;
+
+        delete $self->{'device'}->{$name};
     }
 
     return 1;
