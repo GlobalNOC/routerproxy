@@ -23,6 +23,7 @@ Requires: perl(GRNOC::Config)
 Requires: perl(Class::Accessor)
 Requires: perl(YAML)
 Requires: perl(JSON)
+Requires: perl(Log::Log4perl)
 
 BuildRequires: tar
 AutoReqProv: no
