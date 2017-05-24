@@ -1,7 +1,7 @@
 Summary: GRNOC Router Proxy
 Name: grnoc-routerproxy
 Version: 2.0.1
-Release: 1%{?dist}
+Release: %{_buildno}%{?dist}
 License: GRNOC
 Group: Auth
 URL: http://globalnoc.iu.edu
