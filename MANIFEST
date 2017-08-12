@@ -1,7 +1,7 @@
 Changes.md
-conf/apache/routerproxy.conf
-conf/config.yaml
-conf/routerproxy_mappings.xml
+conf/mappings.xml
+conf/routerproxy.conf
+conf/routerproxy.yaml
 grnoc-routerproxy.spec
 lib/Commands.pm
 lib/Logger.pm
@@ -10,17 +10,19 @@ lib/RouterProxyConfig.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
-META.json			Module JSON meta-data (added by MakeMaker)
-META.yml			Module YAML meta-data (added by MakeMaker)
+META.json
+META.yml
 README.md
 t/conf/test.conf
+t/conf/test.yaml
 t/data/show_bgp_neighbor.txt
 t/data/show_bgp_neighbor_redacted.txt
 t/init.t
 t/routerProxy.t
 t/RouterProxyConfig.t
 t/TEST
-webroot/index.cgi
-webroot/style.css
-webroot/routerproxy.js
 templates/index.tt
+util/xml-to-yaml.pl
+webroot/index.cgi
+webroot/routerproxy.js
+webroot/style.css
