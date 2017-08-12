@@ -65,7 +65,7 @@ local $ENV{'XML_SIMPLE_PREFERRED_PARSER'} = 'XML::Parser';
 
 my $cgi = CGI->new();
 my $config_path = ConfigChooser( $ENV{'REQUEST_URI'},
-                                 "/etc/grnoc/routerproxy/routerproxy_mappings.xml");
+                                 "/etc/grnoc/routerproxy/mappings.xml");
 
 unless (defined($config_path) && -e $config_path) {
     warn ("Please check mapping file. The config file for this url cannot be located\n");

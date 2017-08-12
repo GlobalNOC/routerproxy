@@ -29,8 +29,9 @@ test_jenkins : pure_all
 }
 
 sub MY::postamble { <<'END'; }
+BUILD_NUMBER ?= 1
 
-rpm:    dist
-	rpmbuild -ta grnoc-routerproxy-$(VERSION).tar.gz
+rpm: dist
+	rpmbuild -ta grnoc-routerproxy-$(VERSION).tar.gz --define="_buildno ${BUILD_NUMBER}"
 
 END
