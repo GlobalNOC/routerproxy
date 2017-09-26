@@ -211,7 +211,7 @@ sub getResponse {
         return "Please wait $wait seconds before sending another command.";
     }
 
-    Logger::addEntry($logfile, $remoteIP, $device, $command . " " . $arguments);
+    Logger::addEntry($logfile, $remoteIP, $device->{'address'}, $command . " " . $arguments);
     if (!validCommand($command, $arguments, $device)) {
         return "Disabled Command.";
     }
