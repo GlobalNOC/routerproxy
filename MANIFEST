@@ -2,6 +2,7 @@ Changes.md
 conf/mappings.xml
 conf/routerproxy.conf
 conf/routerproxy.yaml
+conf/logging.conf
 grnoc-routerproxy.spec
 lib/Commands.pm
 lib/Logger.pm
