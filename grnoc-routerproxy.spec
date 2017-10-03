@@ -42,6 +42,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__install} -d -p %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
 %{__install} conf/mappings.xml     %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
 %{__install} conf/routerproxy.yaml %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
+%{__install} conf/logging.conf     %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
 
 %{__install} -d -p %{buildroot}%{_sysconfdir}/httpd/conf.d/grnoc/
 %{__install} conf/routerproxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/grnoc/
@@ -72,6 +73,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(640,root,apache,-)
 %config(noreplace) %{_sysconfdir}/grnoc/routerproxy/mappings.xml
 %config(noreplace) %{_sysconfdir}/grnoc/routerproxy/routerproxy.yaml
+%config(noreplace) %{_sysconfdir}/grnoc/routerproxy/logging.conf
 
 %defattr(644,root,root,-)
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/grnoc/routerproxy.conf
