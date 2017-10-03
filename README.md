@@ -9,7 +9,7 @@
 5. Banana
 
 ## About
-Router Proxy is a web-based perl-driven management tool specifically designed for Cisco,
+RouterProxy is a web-based perl-driven management tool specifically designed for Cisco,
 Juniper, and several TL1-based devices.  Command output may be retrieved from the remote
 device in its raw form, or if supported (Juniper and TL1 devices) an easy to read tabular form
 using the available menu commands.  Both telnet and SSH protocols are supported, as well as
