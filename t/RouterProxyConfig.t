@@ -3,11 +3,11 @@ use warnings;
 
 use Data::Dumper;
 use FindBin;
-use RouterProxyConfig;
+use GRNOC::RouterProxy::Config;
 use Test::More tests => 27;
 
 my $path   = "$FindBin::Bin/conf/test.yaml";
-my $config = RouterProxyConfig->New($path);
+my $config = GRNOC::RouterProxy::Config->New($path);
 
 my $log_file = $config->LogFile();
 ok($log_file eq '/tmp/routerproxy.log', "Got log file path: $log_file");

@@ -1,4 +1,4 @@
-package RouterProxy;
+package GRNOC::RouterProxy;
 
 use strict;
 
@@ -30,7 +30,7 @@ use GRNOC::TL1::Device::Nortel::HDXc;
 use GRNOC::TL1::Device::Cisco::ONS15454;
 use GRNOC::TL1::Device::Ciena::CoreDirector;
 
-use RouterProxyConfig;
+use GRNOC::RouterProxy::Config;
 
 my $timeout = 0;
 
@@ -1001,7 +1001,7 @@ sub sanitize_text{
   my $self = shift;
   my $text = shift;
 
-  my $conf = RouterProxyConfig->New($self->{'config_path'});
+  my $conf = GRNOC::RouterProxy::Config->New($self->{'config_path'});
   my $stanzas = $conf->Redacts();
 
   foreach my $stanza ( @$stanzas ) {

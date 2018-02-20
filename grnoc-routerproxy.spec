@@ -25,6 +25,9 @@ Requires: perl(YAML)
 Requires: perl(JSON)
 Requires: perl(Log::Log4perl)
 
+Provides: perl(GRNOC::RouterProxy)
+Provides: perl(GRNOC::RouterProxy::Commands), perl(GRNOC::RouterProxy::Config), perl(GRNOC::RouterProxy::Logger)
+
 BuildRequires: tar
 AutoReqProv: no
 
@@ -39,7 +42,7 @@ GRNOC Router Proxy
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__install} -d -p %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
+%{__install} -d -p                 %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
 %{__install} conf/mappings.xml     %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
 %{__install} conf/routerproxy.yaml %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
 %{__install} conf/logging.conf     %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
@@ -47,18 +50,18 @@ rm -rf $RPM_BUILD_ROOT
 %{__install} -d -p %{buildroot}%{_sysconfdir}/httpd/conf.d/grnoc/
 %{__install} conf/routerproxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/grnoc/
 
-%{__install} -d -p %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
-%{__install} lib/Commands.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
-%{__install} lib/Logger.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
-%{__install} lib/RouterProxy.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
-%{__install} lib/RouterProxyConfig.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
+%{__install} -d -p                             %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
+%{__install} lib/GRNOC/RouterProxy.pm          %{buildroot}%{perl_vendorlib}/GRNOC/
+%{__install} lib/GRNOC/RouterProxy/Commands.pm %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
+%{__install} lib/GRNOC/RouterProxy/Config.pm   %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
+%{__install} lib/GRNOC/RouterProxy/Logger.pm   %{buildroot}%{perl_vendorlib}/GRNOC/RouterProxy/
 
-%{__install} -d -p %{buildroot}%{_datadir}/grnoc/routerproxy/www/
+%{__install} -d -p                  %{buildroot}%{_datadir}/grnoc/routerproxy/www/
 %{__install} webroot/index.cgi      %{buildroot}%{_datadir}/grnoc/routerproxy/www/
 %{__install} webroot/style.css      %{buildroot}%{_datadir}/grnoc/routerproxy/www/
 %{__install} webroot/routerproxy.js %{buildroot}%{_datadir}/grnoc/routerproxy/www/
 
-%{__install} -d -p %{buildroot}%{_datadir}/grnoc/routerproxy/templates/
+%{__install} -d -p              %{buildroot}%{_datadir}/grnoc/routerproxy/templates/
 %{__install} templates/index.tt %{buildroot}%{_datadir}/grnoc/routerproxy/templates/
 
 %{__install} -d -p %{buildroot}%{_datadir}/grnoc/routerproxy/.ssh/
@@ -79,10 +82,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/grnoc/routerproxy.conf
 
 %defattr(644,root,root,-)
+%{perl_vendorlib}/GRNOC/RouterProxy.pm
 %{perl_vendorlib}/GRNOC/RouterProxy/Commands.pm
+%{perl_vendorlib}/GRNOC/RouterProxy/Config.pm
 %{perl_vendorlib}/GRNOC/RouterProxy/Logger.pm
-%{perl_vendorlib}/GRNOC/RouterProxy/RouterProxy.pm
-%{perl_vendorlib}/GRNOC/RouterProxy/RouterProxyConfig.pm
 
 %defattr(754,apache,apache,-)
 %{_datadir}/grnoc/routerproxy/www/index.cgi

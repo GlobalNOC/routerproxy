@@ -4,9 +4,9 @@ use warnings;
 use Data::Dumper;
 use Test::More tests => 1;
 
-use RouterProxy;
+use GRNOC::RouterProxy;
 
-my $routerProxy = RouterProxy->new();
+my $routerProxy = GRNOC::RouterProxy->new();
 
 ok( defined( $routerProxy ), "RouterProxy object instantiated" );
 

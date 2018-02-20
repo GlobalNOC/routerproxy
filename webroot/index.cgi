@@ -7,9 +7,9 @@ use lib "$FindBin::Bin/../lib";
 use CGI;
 use FileHandle;
 use XML::Simple;
-use RouterProxy;
-use RouterProxyConfig;
-use Commands;
+use GRNOC::RouterProxy;
+use GRNOC::RouterProxy::Config;
+use GRNOC::RouterProxy::Commands;
 use Encode;
 use Data::Dumper;
 use GRNOC::Config;
@@ -55,7 +55,7 @@ use GRNOC::TL1::Device::Nortel::HDXc;
 use GRNOC::TL1::Device::Cisco::ONS15454;
 use GRNOC::TL1::Device::Ciena::CoreDirector;
 
-use Logger;
+use GRNOC::RouterProxy::Logger;
 use Time::ParseDate;
 
 use strict;
@@ -203,7 +203,7 @@ sub getResponse {
     my $arguments = shift;
     my $device    = shift;
 
-    my $last = Logger::getLastTime($logfile);
+    my $last = GRNOC::RouterProxy::Logger::getLastTime($logfile);
     my $now  = time();
     my $diff = $now - $last;
     if ($diff < $spamSeconds) {
@@ -211,7 +211,7 @@ sub getResponse {
         return "Please wait $wait seconds before sending another command.";
     }
 
-    Logger::addEntry($logfile, $remoteIP, $device->{'address'}, $command . " " . $arguments);
+    GRNOC::RouterProxy::Logger::addEntry($logfile, $remoteIP, $device->{'address'}, $command . " " . $arguments);
     if (!validCommand($command, $arguments, $device)) {
         return "Disabled Command.";
     }
@@ -304,14 +304,14 @@ sub getCienaMenuResponse {
   my @rows;
   my $result;
 
-  my $last = Logger::getLastTime($logfile);
+  my $last = GRNOC::RouterProxy::Logger::getLastTime($logfile);
   my $now = time();
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
     return "Please wait $wait seconds before sending another command.";
   }
-  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+  GRNOC::RouterProxy::Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
@@ -371,14 +371,14 @@ sub getOnsMenuResponse {
   my @rows;
   my $result;
 
-  my $last = Logger::getLastTime($logfile);
+  my $last = GRNOC::RouterProxy::Logger::getLastTime($logfile);
   my $now = time();
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
     return "Please wait $wait seconds before sending another command.";
   }
-  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+  GRNOC::RouterProxy::Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
@@ -438,14 +438,14 @@ sub getOmeMenuResponse {
   my @rows;
   my $result;
 
-  my $last = Logger::getLastTime($logfile);
+  my $last = GRNOC::RouterProxy::Logger::getLastTime($logfile);
   my $now = time();
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
     return "Please wait $wait seconds before sending another command.";
   }
-  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+  GRNOC::RouterProxy::Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
@@ -506,14 +506,14 @@ sub getHdxcMenuResponse {
   my @rows;
   my $result;
 
-  my $last = Logger::getLastTime($logfile);
+  my $last = GRNOC::RouterProxy::Logger::getLastTime($logfile);
   my $now = time();
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
     return "Please wait $wait seconds before sending another command.";
   }
-  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+  GRNOC::RouterProxy::Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
@@ -584,14 +584,14 @@ sub getIosMenuResponse {
 
   my $result;
 
-  my $last = Logger::getLastTime($logfile);
+  my $last = GRNOC::RouterProxy::Logger::getLastTime($logfile);
   my $now = time();
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
     return "Please wait $wait seconds before sending another command.";
   }
-  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+  GRNOC::RouterProxy::Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if ( !defined( $devices->{$device} ) ) {
@@ -705,14 +705,14 @@ sub getMenuResponse {
   my $result;
   my $xml;
 
-  my $last = Logger::getLastTime($logfile);
+  my $last = GRNOC::RouterProxy::Logger::getLastTime($logfile);
   my $now = time();
   my $diff = $now - $last;
   if ($diff < $spamSeconds) {
     my $wait = $spamSeconds - $diff;
     return "Please wait $wait seconds before sending another command.";
   }
-  Logger::addEntry($logfile, $remoteIP, $device, $cmd);
+  GRNOC::RouterProxy::Logger::addEntry($logfile, $remoteIP, $device, $cmd);
 
   # make sure the device exists in the config
   if (!defined $device) {
