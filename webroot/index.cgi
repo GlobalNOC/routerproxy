@@ -257,7 +257,7 @@ sub getError {
 
 sub makeHTML2 {
     my $tt = Template->new({ ABSOLUTE => 1 });
-    my $input = "/gnoc/routerproxy/templates/index.tt";
+    my $input = "/usr/share/grnoc/routerproxy/templates/index.tt";
 
     # If $handler is defined outside the makeHTML2 subroutine an error
     # is returned.
