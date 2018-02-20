@@ -2,7 +2,6 @@
 use warnings;
 
 use FindBin;
-use lib "$FindBin::Bin/../lib";
 
 use CGI;
 use FileHandle;
@@ -232,16 +231,17 @@ sub getResponse {
     Encode::from_to($username, 'utf8', 'iso-8859-1');
     Encode::from_to($password, 'utf8', 'iso-8859-1');
 
-    my $proxy = RouterProxy->new( hostname    => $hostname,
-                                  port        => $port,
-                                  username    => $username,
-                                  password    => $password,
-                                  method      => $method,
-                                  type        => $type,
-                                  maxlines    => $maxlines,
-                                  config_path => $config_path,
-                                  timeout     => $timeout
-                                );
+    my $proxy = GRNOC::RouterProxy->new(
+        hostname    => $hostname,
+        port        => $port,
+        username    => $username,
+        password    => $password,
+        method      => $method,
+        type        => $type,
+        maxlines    => $maxlines,
+        config_path => $config_path,
+        timeout     => $timeout
+    );
     my $result = $proxy->command($command);
 
     # End the timer if the command was successful.
