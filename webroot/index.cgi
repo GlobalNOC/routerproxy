@@ -77,7 +77,7 @@ unless (defined($config_path) && -e $config_path) {
     exit 1;
 }
 
-my $conf = RouterProxyConfig->New($config_path);
+my $conf = GRNOC::RouterProxy::Config->New($config_path);
 
 # A little hack to store devices by address. Should be changed to use
 # device name in the future.
