@@ -1,3 +1,5 @@
+package GRNOC::RouterProxy::Commands;
+
 use XML::Simple;
 use Data::Dumper;
 

@@ -7,7 +7,7 @@ use FindBin;
 WriteMakefile(
     NAME                => 'grnoc-routerproxy',
     AUTHOR              => 'GRNOC Software Engineering <globalnoc@iu.edu>',
-    VERSION_FROM        => 'lib/RouterProxy.pm',
+    VERSION_FROM        => 'lib/GRNOC/RouterProxy.pm',
               PL_FILES            => {},
               PREREQ_PM => {
               },

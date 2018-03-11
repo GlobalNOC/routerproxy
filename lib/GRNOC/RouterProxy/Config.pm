@@ -1,4 +1,4 @@
-package RouterProxyConfig;
+package GRNOC::RouterProxy::Config;
 
 use strict;
 use warnings;

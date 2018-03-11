@@ -1,4 +1,4 @@
-package Logger;
+package GRNOC::RouterProxy::Logger;
 
 use Time::ParseDate;
 

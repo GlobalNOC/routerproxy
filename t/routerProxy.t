@@ -5,9 +5,9 @@ use Data::Dumper;
 use FindBin;
 use Test::More tests => 1;
 
-use RouterProxy;
+use GRNOC::RouterProxy;
 
-my $routerProxy = RouterProxy->new(config_path => "$FindBin::Bin/conf/test.conf");
+my $routerProxy = GRNOC::RouterProxy->new(config_path => "$FindBin::Bin/conf/test.conf");
 
 my $original_file_name = "$FindBin::Bin/data/show_bgp_neighbor.txt";
 my $redacted_file_name = "$FindBin::Bin/data/show_bgp_neighbor_redacted.txt";
