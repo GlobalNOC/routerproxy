@@ -162,9 +162,11 @@
     </center>
 
     <div class="host_command">
-      Command: <select class="host_command_select" id="host_command_select"><option>select</option></select>
-      <input class="host_command_text" id="host_command_text" type="text"></input>
-      <input class="host_command_button" type="button" value="Submit" onclick="submitCommand(this)"></input>
+      <form method="GET" action="." onsubmit="return submitCommand(this)">
+        Command: <select class="host_command_select" id="host_command_select"><option>select</option></select>
+        <input class="host_command_text" id="host_command_text" type="text"></input>
+        <input class="host_command_button" type="submit" value="Submit"></input>
+      </form>
     </div>
     <br/>
     <br/>

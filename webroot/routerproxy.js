@@ -123,6 +123,8 @@ function submitCommand() {
     req.timeout = 60000;
     req.ontimeout = function() { showMessage('Request timeout: ' + d); };
     req.send(null);
+
+    return false;
 }
 
 function submitMenuCommand(command) {
