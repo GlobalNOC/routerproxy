@@ -46,26 +46,26 @@
           <tr><td><center><ul>
                   <li><a>Hardware</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('environment')>Environment</a></li>
-                      <li><a onclick=submitMenuCommand('filesystem')>File System</a></li>
-                      <li><a onclick=submitMenuCommand('interfaces')>Interfaces</a></li>
-                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                      <li><a onclick="submitMenuCommand('environment')">Environment</a></li>
+                      <li><a onclick="submitMenuCommand('filesystem')">File System</a></li>
+                      <li><a onclick="submitMenuCommand('interfaces')">Interfaces</a></li>
+                      <li><a onclick="submitMenuCommand('inventory')">Inventory</a></li>
                     </ul>
                   </li>
                   <li><a>Protocols</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('bgp')>BGP</a></li>
-                      <li><a onclick=submitMenuCommand('ipv6Neighbors')>IPV6 Neighbors</a></li>
-                      <li><a onclick=submitMenuCommand('isis')>ISIS Adjacencies</a></li>
-                      <li><a onclick=submitMenuCommand('msdp')>MSDP</a></li>
-                      <li><a onclick=submitMenuCommand('multicastStatistics')>Multicast Statistics</a></li>
-                      <li><a onclick=submitMenuCommand('snmpStatistics')>SNMP Statistics</a></li>
+                      <li><a onclick="submitMenuCommand('bgp')">BGP</a></li>
+                      <li><a onclick="submitMenuCommand('ipv6Neighbors')">IPV6 Neighbors</a></li>
+                      <li><a onclick="submitMenuCommand('isis')">ISIS Adjacencies</a></li>
+                      <li><a onclick="submitMenuCommand('msdp')">MSDP</a></li>
+                      <li><a onclick="submitMenuCommand('multicastStatistics')">Multicast Statistics</a></li>
+                      <li><a onclick="submitMenuCommand('snmpStatistics')">SNMP Statistics</a></li>
                     </ul>
                   </li>
                   <li><a>System</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('bootMessages')>Boot Messages</a></li>
-                      <li><a onclick=submitMenuCommand('version')>Version</a></li>
+                      <li><a onclick="submitMenuCommand('bootMessages')">Boot Messages</a></li>
+                      <li><a onclick="submitMenuCommand('version')">Version</a></li>
                     </ul>
                   </li>
           </ul></center></td></tr>
@@ -75,16 +75,16 @@
           <tr><td><center><ul>
                   <li><a>Hardware</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('interfaces')>Interfaces</a></li>
-                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                      <li><a onclick="submitMenuCommand('interfaces')">Interfaces</a></li>
+                      <li><a onclick="submitMenuCommand('inventory')">Inventory</a></li>
                     </ul>
                   </li>
                   <li><a>Protocols</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('bgp')>BGP</a></li>
-                      <li><a onclick=submitMenuCommand('ipv6Neighbors')>IPv6 Neighbors</a></li>
-                      <li><a onclick=submitMenuCommand('isis')>ISIS</a></li>
-                      <li><a onclick=submitMenuCommand('msdp')>MSDP</a></li>
+                      <li><a onclick="submitMenuCommand('bgp')">BGP</a></li>
+                      <li><a onclick="submitMenuCommand('ipv6Neighbors')">IPv6 Neighbors</a></li>
+                      <li><a onclick="submitMenuCommand('isis')">ISIS</a></li>
+                      <li><a onclick="submitMenuCommand('msdp')">MSDP</a></li>
                     </ul>
                   </li>
           </ul></center></td></tr>
@@ -94,13 +94,13 @@
           <tr><td><center><ul>
                   <li><a>Hardware</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                      <li><a onclick="submitMenuCommand('inventory')">Inventory</a></li>
                     </ul>
                   </li>
                   <li><a>System</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
-                      <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                      <li><a onclick="submitMenuCommand('alarms')">Alarms</a></li>
+                      <li><a onclick="submitMenuCommand('circuits')">Circuits</a></li>
                     </ul>
                   </li>
           </ul></center></td></tr>
@@ -110,13 +110,13 @@
           <tr><td><center><ul>
                   <li><a>Hardware</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                      <li><a onclick="submitMenuCommand('inventory')">Inventory</a></li>
                     </ul>
                   </li>
                   <li><a>System</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
-                      <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                      <li><a onclick="submitMenuCommand('alarms')">Alarms</a></li>
+                      <li><a onclick="submitMenuCommand('circuits')">Circuits</a></li>
                     </ul>
                   </li>
           </ul></center></td></tr>
@@ -126,13 +126,13 @@
           <tr><td><center><ul>
                   <li><a>Hardware</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                      <li><a onclick="submitMenuCommand('inventory')">Inventory</a></li>
                     </ul>
                   </li>
                   <li><a>System</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
-                      <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                      <li><a onclick="submitMenuCommand('alarms')">Alarms</a></li>
+                      <li><a onclick="submitMenuCommand('circuits')">Circuits</a></li>
                     </ul>
                   </li>
           </ul></center></td></tr>
@@ -142,13 +142,13 @@
           <tr><td><center><ul>
                   <li><a>Hardware</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('inventory')>Inventory</a></li>
+                      <li><a onclick="submitMenuCommand('inventory')">Inventory</a></li>
                     </ul>
                   </li>
                   <li><a>System</a>
                     <ul>
-                      <li><a onclick=submitMenuCommand('alarms')>Alarms</a></li>
-                      <li><a onclick=submitMenuCommand('circuits')>Circuits</a></li>
+                      <li><a onclick="submitMenuCommand('alarms')">Alarms</a></li>
+                      <li><a onclick="submitMenuCommand('circuits')">Circuits</a></li>
                     </ul>
                   </li>
           </ul></center></td></tr>
@@ -162,9 +162,11 @@
     </center>
 
     <div class="host_command">
-      Command: <select class="host_command_select" id="host_command_select"><option>select</option></select>
-      <input class="host_command_text" id="host_command_text" type="text"></input>
-      <input class="host_command_button" type="button" value="Submit" onclick="submitCommand(this)"></input>
+      <form method="GET" action="." onsubmit="return submitCommand()">
+        Command: <select class="host_command_select" id="host_command_select"><option>select</option></select>
+        <input class="host_command_text" id="host_command_text" type="text"></input>
+        <input class="host_command_button" type="submit" value="Submit"></input>
+      </form>
     </div>
     <br/>
     <br/>
