@@ -415,10 +415,16 @@ Returns an array of the device groups in this config.
 =cut
 sub DeviceGroups {
     my $self = shift;
+    my %params = @_;
 
     my $result = [];
     foreach my $name (sort { $self->{'device_group'}->{$a}->{'position'} <=> $self->{'device_group'}->{$b}->{'position'} } keys %{$self->{'device_group'}}) {
-        push(@{$result}, $self->{'device_group'}->{$name});
+        my $group = $self->{'device_group'}->{$name};
+        if ($params{'sort_devices'}) {
+            my @devices = sort { $a->{'name'} cmp $b->{'name'} } @{$group->{'devices'}};
+            $group->{'devices'} = \@devices;
+        }
+        push(@{$result}, $group);
     }
     return $result;
 }
