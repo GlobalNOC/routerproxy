@@ -286,7 +286,7 @@ sub makeHTML2 {
                  noc_mail     => $conf->NOCMail(),
                  noc_name     => $conf->NOCName(),
                  noc_site     => $conf->NOCSite(),
-                 groups       => $conf->DeviceGroups()
+                 groups       => $conf->DeviceGroups(sort_devices => 1)
                };
     $tt->process($input, $vars, \$html);
 
