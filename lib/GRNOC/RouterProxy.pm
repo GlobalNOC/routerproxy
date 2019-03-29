@@ -153,6 +153,20 @@ sub command {
     return $result;
   }
 
+  elsif ($self->{type} eq "bladeOS" && $self->{method} eq "ssh") {
+      
+      my $result = &bladeOS($self, $command);
+      
+      #$result =~ s/\t/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/g;
+      $result =~ s/ /&nbsp;/g;
+      $result =~ s/</&lt;/g;
+      $result =~ s/>/&gt;/g;
+      #$result =~ s/\n/<br>/g;
+      
+      $result = $self->sanitize_text($result);
+      return $result;
+  }
+  
   elsif ($self->{type} eq "junos" && $self->{method} eq "ssh") {
 
     my $result = &junosSSH($self, $command);
@@ -415,6 +429,108 @@ sub force10SSH {
   $buf = reverse($buf);
 
   return $buf;
+}
+
+sub bladeOS {
+
+    my $self = shift;
+    my $cmd  = shift;
+
+    my $username = $self->{username};
+    my $password = $self->{password};
+    my $hostname = $self->{hostname};
+
+    my $prompt;
+    my $buf;
+    my $count = 0;
+    my $ssh;
+
+    $ssh = Expect->spawn("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l $username $hostname");
+    $ssh->log_stdout(0);
+    $ssh->log_file(sub {$prompt .= shift });
+    $ssh->expect($self->{'timeout'},
+               ['assword:',
+                sub {
+		    my $out = shift;
+		    print $out "$password\n";
+		    exp_continue;
+                }],
+               ['yes/no',
+                sub {
+		    my $out = shift;
+		    print $out "yes\n";
+		    exp_continue;
+                }],
+               ['#',
+                sub {
+                }],
+               ['>',
+                sub {
+                }]
+	);
+
+    $prompt = reverse($prompt);
+    my $index = index($prompt, "\n");
+    $prompt = substr($prompt, 0, $index);
+    $prompt = reverse($prompt);
+
+    $ssh->log_file(sub { $buf .= shift });
+    $ssh->send("terminal length 0\r\n");
+    $ssh->expect($self->{'timeout'},
+		 ["^$prompt", sub {}]);
+
+    eval {
+
+	local $SIG{ALRM} = sub {
+
+	    $buf .= "\n--- Maximum Timeout Exceeded ---\n\n";
+	    die;
+	};
+
+	$ssh->log_file(sub {
+
+	    if ($count >= $self->{maxlines}) {
+
+		$buf .= "\n--- Maximum Output Exceeded ---\n\n";
+		$ssh->log_file(undef);
+		die;
+	    }
+	    my $data = shift;
+	    $buf .= $data;
+
+	    my $newlines = ($data =~ tr/\n//);
+	    $count += $newlines;
+		       });
+	alarm($self->{'timeout'});
+
+	# dont give a newline if the command contains ?
+	my $matchCmd = $cmd;
+	if ($cmd =~ /\?/) {
+	    chop($matchCmd);
+	    $ssh->send("$cmd");
+	}
+	else {
+	    $ssh->send("$cmd\r\n");
+	}
+	$ssh->expect($self->{'timeout'},
+                 ["^$prompt",
+                  sub {}]);
+	alarm(0);
+    };
+
+    # remove 4 blank lines
+    $buf =~ s/.*\n//;
+    $buf =~ s/.*\n//;
+    $buf =~ s/.*\n//;
+    $buf =~ s/.*\n//;
+    #$buf = blankPrompt($buf);
+    
+    $buf = reverse($buf);
+    #remove last line (prompt)
+    $buf =~ s/.*\n//;
+    $buf = reverse($buf);
+    
+    return $buf;
 }
 
 sub hpSSH {
