@@ -180,6 +180,19 @@ sub command {
     return $result;
   }
 
+
+  elsif ($self->{type} eq "arista" && $self->{method} eq "ssh") {
+
+    my $result = &aristaSSH($self, $command);
+
+    $result =~ s/ /&nbsp;/g;
+    $result =~ s/</&lt;/g;
+    $result =~ s/>/&gt;/g;
+    #$result =~ s/\n/<br>/g;
+
+    return $result;
+  }
+
   elsif ($self->{method} eq "ssh") {
 
     my $result;
@@ -1076,6 +1089,124 @@ sub junosSSH {
   return $buf;
 }
 
+sub aristaSSH {
+
+  my $self = shift;
+  my $cmd  = shift;
+
+  my $username = $self->{username};
+  my $password = $self->{password};
+  my $hostname = $self->{hostname};
+
+  my $buf;
+  my $count = 0;
+  my $questionMark = 0;
+  my $ssh;
+
+  $ssh = Expect->spawn("ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l $username $hostname");
+  $ssh->log_stdout(0);
+  $ssh->expect($self->{'timeout'},
+               ['assword:',
+                sub {
+                  my $out = shift;
+                  print $out "$password\n";
+                  exp_continue;
+                }],
+               ['yes/no',
+                sub {
+                  my $out = shift;
+                  print $out "yes\n";
+                  exp_continue;
+                }],
+               ['#',
+                sub {
+                }],
+               ['>',
+                sub {
+                }]
+              );
+
+  $ssh->log_file(sub { $buf .= shift });
+  $ssh->send("terminal length 0\n");
+  $ssh->expect($self->{'timeout'},
+               ['#',
+                sub {
+                }],
+               ['>',
+                sub {
+                }]);
+
+  eval {
+
+    local $SIG{ALRM} = sub {
+
+      $buf .= "\n--- Maximum Timeout Exceeded ---\n\n";
+      die;
+    };
+
+    alarm($self->{'timeout'});
+
+    if ($cmd =~ /\?/) {
+      $questionMark = 1;
+      $ssh->send("$cmd");
+    }
+    else {
+      $ssh->send("$cmd\n");
+    }
+
+    $ssh->log_file(sub {
+
+                     if ($count >= $self->{maxlines}) {
+                       $ssh->log_file(undef);
+                       $buf .= "\n--- Maximum Output Exceeded ---\n\n";
+                       die;
+                     }
+
+                     my $data = shift;
+                     $buf .= $data;
+
+                     my $newlines = ($data =~ tr/\n//);
+                     $count += $newlines;
+                   });
+
+    if ($questionMark) {
+
+      $cmd =~ s/(.*)\?/$1/;
+      $ssh->expect($self->{'timeout'},
+                   ["^.*[#>]($cmd)",
+                    sub {}]);
+    }
+    else {
+      $ssh->expect($self->{'timeout'},
+                   ['^.*#$',
+                    sub {
+                    }],
+                   ['^.*>$',
+                    sub {
+                    }]);
+    }
+
+    alarm(0);
+  };
+
+  # remove first blank line
+  $buf =~ s/.*\n//;
+  $buf = blankPrompt($buf);
+
+  # add an extra space to line up the ^ if needed
+  if ($buf =~ /% Invalid input detected at/) {
+
+    $buf =~ s/\^/ ^/;
+  }
+
+  $buf = reverse($buf);
+  $buf = reverse($buf);
+  #remove last line (prompt)
+  $buf =~ s/.*\n//;
+  $buf = reverse($buf);
+
+  return $buf;
+}
 
 sub blankPrompt {
 
