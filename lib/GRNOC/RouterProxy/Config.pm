@@ -298,6 +298,9 @@ sub CommandsInGroup {
 
 =head2 Device
 
+    my $device = $config->Device('127.0.0.1');
+    die if !defined $device;
+
 Returns the device with address $name.
 
 =cut
