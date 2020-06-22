@@ -1200,7 +1200,6 @@ sub aristaSSH {
   }
 
   $buf = reverse($buf);
-  $buf = reverse($buf);
   #remove last line (prompt)
   $buf =~ s/.*\n//;
   $buf = reverse($buf);
