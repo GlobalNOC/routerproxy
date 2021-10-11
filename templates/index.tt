@@ -20,9 +20,11 @@
     [% FOREACH group IN groups %]
     <div class="devices">
       <table class="title">
-        <tr class="menu-title" onclick="toggle('[% group.name %]');"><td colspan="3">[% group.name %]</td></tr>
+        <tr class="menu-title" onclick="toggle('[% group.name %]');">
+          <td colspan="3" title="[% group.description %]">[% group.name %]</td>
+        </tr>
       </table>
-      <table id='[% group.name %]' style='display: table'>
+      <table id='[% group.name %]' style='display: [% IF group.display == 1 %]table[% ELSE %]none[% END %]'>
         [% FOREACH device = group.devices -%]
         [% IF loop.index % 3 == 0 %]
         <tr class="primary">

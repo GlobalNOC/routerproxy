@@ -1,10 +1,3 @@
 <mappings version="1">
-
-  <map regexp="^\/.*iu-cni"
-       config_location="/etc/grnoc/routerproxy/iu-cni/config.yaml" />
-
-  <map regexp="^\/.*gigapop"
-       config_location="/etc/grnoc/routerproxy/gigapop/config.yaml" />
-
+  <map regexp="^\/" config_location="/etc/grnoc/routerproxy/routerproxy.yaml" />
 </mappings>
-

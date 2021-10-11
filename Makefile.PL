@@ -8,12 +8,11 @@ WriteMakefile(
     NAME                => 'grnoc-routerproxy',
     AUTHOR              => 'GRNOC Software Engineering <globalnoc@iu.edu>',
     VERSION_FROM        => 'lib/GRNOC/RouterProxy.pm',
-              PL_FILES            => {},
-              PREREQ_PM => {
-              },
-              dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-              clean               => { FILES => 'grnoc-routerproxy-*.gz' },
-              );
+    PL_FILES            => {},
+    PREREQ_PM           => {},
+    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    clean               => { FILES => 'grnoc-routerproxy-*.gz' },
+);
 
 sub MY::test {
     q(
@@ -34,4 +33,6 @@ BUILD_NUMBER ?= 1
 rpm: dist
 	rpmbuild -ta grnoc-routerproxy-$(VERSION).tar.gz --define="_buildno ${BUILD_NUMBER}"
 
+container:
+	docker build . -f Dockerfile -t routerproxy:$(VERSION)
 END
