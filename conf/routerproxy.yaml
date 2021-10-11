@@ -280,7 +280,7 @@ device_group:
     display: 1
     name: Optical Gear
 frontend:
-  dropdown: 1
+  dropdown: 0
   help: 'Note: some text that does not contain greater/less than sign'
   network_name: My Network
   noc_mail: My Email Address
