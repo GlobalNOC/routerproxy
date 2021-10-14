@@ -547,6 +547,26 @@ sub NetworkName {
     return $self->{'frontend'}->{'network_name'};
 }
 
+=head2 PrimaryColor
+
+Returns the primary UI color.
+
+=cut
+sub PrimaryColor {
+    my $self = shift;
+    return $self->{'frontend'}->{'primary_color'} || '#990000';
+}
+
+=head2 SecondaryColor
+
+Returns the secondary UI color.
+
+=cut
+sub SecondaryColor {
+    my $self = shift;
+    return $self->{'frontend'}->{'secondary_color'} || $self->PrimaryColor();
+}
+
 =head2 NOCName
 
 Returns the name of the NOC.

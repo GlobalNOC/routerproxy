@@ -282,11 +282,13 @@ sub makeHTML2 {
     }
 
     my $html = "";
-    my $vars = { network_name => $conf->NetworkName(),
-                 noc_mail     => $conf->NOCMail(),
-                 noc_name     => $conf->NOCName(),
-                 noc_site     => $conf->NOCSite(),
-                 groups       => $conf->DeviceGroups(sort_devices => 1)
+    my $vars = { network_name    => $conf->NetworkName(),
+                 primary_color   => $conf->PrimaryColor(),
+                 secondary_color => $conf->SecondaryColor(),
+                 noc_mail        => $conf->NOCMail(),
+                 noc_name        => $conf->NOCName(),
+                 noc_site        => $conf->NOCSite(),
+                 groups          => $conf->DeviceGroups(sort_devices => 1)
                };
     $tt->process($input, $vars, \$html);
 
