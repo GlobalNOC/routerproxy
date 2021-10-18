@@ -3,6 +3,12 @@
 <html>
   <link rel='stylesheet' type='text/css' href='style.css'>
   <script type="text/javascript" src="routerproxy.js"></script>
+  <style>
+    :root {
+      --primary-color: [% primary_color %];
+      --secondary-color: [% secondary_color %];
+    }
+  </style>
 
   <head>
     <meta charset="UTF-8">

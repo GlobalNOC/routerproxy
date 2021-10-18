@@ -22,7 +22,7 @@ div.logo {
   font-size: 22px;
   font-weight: bold;
   text-align: center;
-  color: #990000;
+  color: var(--primary-color);
 }
 
 div.devices {
@@ -70,7 +70,7 @@ table.menu-table {
     display: none;
   width: auto;
   border: 1px dotted black;
-  background-color: #990000;
+  background-color: var(--primary-color);
 }
 
 table.title {
@@ -117,7 +117,7 @@ select.host_command_select {
 
 tr.menu-title {
 
-  background-color: #990000;
+  background-color: var(--primary-color);
   color: white;
   font-family: Arial,Helvetica;
   font-size: 12px;
@@ -126,7 +126,7 @@ tr.menu-title {
 
 tr.title {
 
-  background-color: #990000;
+  background-color: var(--primary-color);
   color: white;
   font-family: Arial,Helvetica;
   font-size: 12px;
@@ -167,7 +167,7 @@ h4 {
 a {
 
   font-family: Arial,Helvetica;
-  color: #990000;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -208,7 +208,7 @@ li ul {
     position: absolute;
     top: 11px;
     left: 0;
-    background-color: #990000;
+    background-color: var(--primary-color);
 }
 
 li:hover ul, li.over ul {

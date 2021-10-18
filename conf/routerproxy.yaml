@@ -283,6 +283,7 @@ frontend:
   dropdown: 0
   help: 'Note: some text that does not contain greater/less than sign'
   network_name: My Network
+  primary_color: '#990000'
   noc_mail: My Email Address
   noc_name: My NOC
   noc_site: http://noc.network.net
