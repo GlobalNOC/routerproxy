@@ -72,8 +72,8 @@ RouterProxy may be run via Docker, but you'll need to build the container yourse
 perl Makefile.PL
 make container
 docker run --detach --publish 8080:8080 --name routerproxy \
-> --volume $PWD/conf/routerproxy.yaml:/etc/grnoc/routerproxy/routerproxy.yaml \
-> routerproxy:2.3.0
+--volume $PWD/conf/routerproxy.yaml:/etc/grnoc/routerproxy/routerproxy.yaml \
+routerproxy:2.3.0
 ```
 
 ## TODO
