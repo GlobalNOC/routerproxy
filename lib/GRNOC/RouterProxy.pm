@@ -34,7 +34,7 @@ use GRNOC::RouterProxy::Config;
 
 my $timeout = 0;
 
-our $VERSION = '2.2.0';
+our $VERSION = '2.3.0';
 sub new {
 
   my $caller = shift;
