@@ -31,8 +31,22 @@ An example is provided in /etc/grnoc/routerproxy/. The absolute paths must be us
 shouldn't be in a web accessible folder for all to see. This would easily allow someone to 
 discover all of the passwords to the devices you have configured for your Router Proxy installation.
 
-If you wish to change the appearance of Router Proxy, feel free to edit the webroot/style.css
-cascading style sheet to better suit your needs.
+If you wish to change the appearance of Router Proxy, feel free to
+edit the webroot/style.css cascading style sheet to better suit your
+needs. If you're only interested in modification of the primary color
+you can set this in `routerproxy.yaml` under `frontend.primary_color`.
+
+Example:
+```yaml
+frontend:
+  dropdown:      0
+  help:          Additional help text
+  network_name:  Example Network
+  noc_mail:      noc@example.net
+  noc_name:      Example Network
+  noc_site:      https://example.net
+  primary_color: '#990000'
+```
 
 ## Dependencies
 Router Proxy needs an Apache installation with CGI/Perl support.  Additionally the following
@@ -51,6 +65,16 @@ don't have it installed, RouterProxy will still work).
 * GRNOC::TL1
 
 These modules have several dependencies of their own, so make sure they are installed as well.
+
+## Docker
+RouterProxy may be run via Docker, but you'll need to build the container yourself.
+```bash
+perl Makefile.PL
+make container
+docker run --detach --publish 8080:8080 --name routerproxy \
+--volume $PWD/conf/routerproxy.yaml:/etc/grnoc/routerproxy/routerproxy.yaml \
+routerproxy:2.3.0
+```
 
 ## TODO
 * IOS Menu Commands?
