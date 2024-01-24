@@ -863,11 +863,6 @@ sub validCommand {
         return 0;
     }
 
-    # Do not allow piping to other commands.
-    if ($args =~ m/\|/) {
-        return 0;
-    }
-
     # Do not allow regexp due to IOS vulnerability.
     if ($args =~ m/regexp/i) {
         return 0;
