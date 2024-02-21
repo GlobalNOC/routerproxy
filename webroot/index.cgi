@@ -149,6 +149,26 @@ sub getDevice {
     print encode_json($data);
 }
 
+sub getDevices {
+    my @device_keys = keys %$devices;
+    my @result = ();
+    foreach my $key (keys %$devices) {
+        my $data = $devices->{$key};
+        $data->{"commands"}    = $conf->DeviceCommands($data->{"address"});
+        $data->{"enable_menu"} = $global_enable_menu_commands;
+        
+        delete $data->{"username"};
+        delete $data->{"password"};
+        delete $data->{"method"};
+        delete $data->{"command_group"};
+        delete $data->{"exclude_group"};
+        push @result, $data;
+    }
+    print $cgi->header(-type => "text/html",
+                       -status => "200" );
+    print encode_json(\@result);
+}
+
 sub getResponses {
     my $address   = $cgi->param("device");
     my $command   = $cgi->param("command");
@@ -265,6 +285,7 @@ sub makeHTML2 {
     # Can't use string ("") as a subroutine ref while "strict refs" in
     # use at /gnoc/routerproxy/webroot/index.cgi line 302.
     my $handler = { device => \&getDevice,
+                    devices => \&getDevices,
                     error  => \&getError,
                     submit => \&getResponses
                   };
