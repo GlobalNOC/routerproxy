@@ -888,6 +888,10 @@ sub validCommand {
     if ($args =~ m/regexp/i) {
         return 0;
     }
+        # Do not allow piping to other commands besides display and match.
+    if ($args =~ m/\|/ && ($args =~ m/.*\|.*\|.*/ || !($args =~ m/display/ or $args =~ m/match/)) ) {
+        return 0;
+    }
 
     if ($args ne "") {
         $command = $command . " " . $args;
