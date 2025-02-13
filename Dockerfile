@@ -7,7 +7,7 @@ COPY conf/globalnoc-public-el7.repo /etc/yum.repos.d/globalnoc-public-el7.repo
 RUN yum makecache
 RUN yum -y install epel-release
 
-RUN yum -y install perl-Template-Toolkit perl-XML-Parser perl-XML-Simple perl-CGI-Ajax perl-Time-ParseDate perl-Net-Telnet perl-Expect perl-GRNOC-TL1 perl-GRNOC-Config perl-Class-Accessor perl-YAML perl-JSON perl-Log-Log4perl
+RUN yum -y install perl-Template-Toolkit perl-XML-Parser perl-XML-Simple perl-CGI perl-Time-ParseDate perl-Net-Telnet perl-Expect perl-GRNOC-TL1 perl-GRNOC-Config perl-Class-Accessor perl-YAML perl-JSON perl-Log-Log4perl
 RUN yum -y install perl-GRNOC-WebService perl-GRNOC-WebService-Client perl-Test-Deep perl-Test-Exception perl-Test-Pod perl-Test-Pod-Coverage perl-Devel-Cover perl-Data-Dumper perl-Test-Harness perl-Test-Simple openssh-clients
 
 COPY conf/routerproxy.conf /etc/httpd/conf.d/routerproxy.conf

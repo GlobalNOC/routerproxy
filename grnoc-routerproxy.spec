@@ -1,6 +1,6 @@
 Summary: GRNOC Router Proxy
 Name: grnoc-routerproxy
-Version: 2.3.2
+Version: 2.4.0
 Release: %{_buildno}%{?dist}
 License: GRNOC
 Group: Auth
@@ -14,7 +14,7 @@ Requires: perl >= 5.8.8
 Requires: perl-Template-Toolkit
 Requires: perl(XML::Parser)
 Requires: perl(XML::Simple)
-Requires: perl(CGI::Ajax)
+Requires: perl(CGI)
 Requires: perl(Time::ParseDate)
 Requires: perl(Net::Telnet)
 Requires: perl(Expect)
@@ -26,7 +26,9 @@ Requires: perl(JSON)
 Requires: perl(Log::Log4perl)
 
 Provides: perl(GRNOC::RouterProxy)
-Provides: perl(GRNOC::RouterProxy::Commands), perl(GRNOC::RouterProxy::Config), perl(GRNOC::RouterProxy::Logger)
+Provides: perl(GRNOC::RouterProxy::Commands)
+Provides: perl(GRNOC::RouterProxy::Config)
+Provides: perl(GRNOC::RouterProxy::Logger)
 
 BuildRequires: tar
 AutoReqProv: no
@@ -46,6 +48,8 @@ rm -rf $RPM_BUILD_ROOT
 %{__install} conf/mappings.xml     %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
 %{__install} conf/routerproxy.yaml %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
 %{__install} conf/logging.conf     %{buildroot}%{_sysconfdir}/grnoc/routerproxy/
+
+%{__install} -d -p %{buildroot}/var/log/grnoc/routerproxy/
 
 %{__install} -d -p %{buildroot}%{_sysconfdir}/httpd/conf.d/grnoc/
 %{__install} conf/routerproxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/grnoc/
@@ -90,9 +94,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(754,apache,apache,-)
 %{_datadir}/grnoc/routerproxy/www/index.cgi
 %{_datadir}/grnoc/routerproxy/www/routerproxy.js
+
 %defattr(644,root,apache,-)
 %config(noreplace) %{_datadir}/grnoc/routerproxy/www/style.css
 
 %{_datadir}/grnoc/routerproxy/templates/index.tt
 
 %attr(755,apache,apache) %dir %{_datadir}/grnoc/routerproxy/.ssh/
+%attr(755,apache,apache) %dir /var/log/grnoc/routerproxy/
