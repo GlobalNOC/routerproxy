@@ -56,7 +56,6 @@ Perl modules need to be installed as well (generally easily done with cpan).
 (NOTE: This is now only required for the menu based commands.. if you
 don't have it installed, RouterProxy will still work).
 * CGI
-* CGI::Ajax
 * XML::Simple
 * Encode
 * Expect

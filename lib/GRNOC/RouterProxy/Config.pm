@@ -7,10 +7,13 @@ use Log::Log4perl;
 use XML::Simple;
 use YAML;
 
+Log::Log4perl::init('/etc/grnoc/routerproxy/logging.conf');
+
 sub New {
     my $class = shift;
+
     my $self  = {
-        log  => Log::Log4perl->get_logger('GRNOC.RouterProxy.Config'),
+        log  => Log::Log4perl->get_logger('GRNOC.RouterProxy'),
         path => shift
     };
 
@@ -41,7 +44,7 @@ sub loadXML {
     my $self = shift;
     my $path = shift;
 
-    $self->{'log'}->info("Loading xml configuration from $self->{'path'}.");
+    $self->{'log'}->debug("Loading XML config $self->{'path'}");
 
     my $xml = XMLin($path, forcearray => 1);
 
@@ -174,7 +177,7 @@ Loads configuration from a JSON file.
 sub loadYAML {
     my $self = shift;
 
-    $self->{'log'}->info("Loading yaml configuration from $self->{'path'}.");
+    $self->{'log'}->debug("Loading YAML config $self->{'path'}.");
 
     my $yaml = YAML::LoadFile($self->{'path'});
 
